@@ -1,31 +1,37 @@
 name: Publish
 
 on:
-  release:
-    types:
-      - published
   workflow_dispatch:
     inputs:
-      tag:
-        description: "Git tag to publish, for example v0.1.0"
+      version:
+        description: "Version to publish, for example 0.1.1 or v0.1.1"
         required: true
+        type: string
+      release_notes:
+        description: "Optional GitHub Release notes"
+        required: false
         type: string
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
+
+concurrency:
+  group: publish-${{ inputs.version }}
+  cancel-in-progress: false
 
 jobs:
   publish:
-    name: Publish to npm
+    name: Tag, release, and publish to npm
     runs-on: ubuntu-latest
     environment: npm
 
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && (startsWith(inputs.tag, 'v') && inputs.tag || format('v{0}', inputs.tag)) || github.ref }}
+          ref: main
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -39,24 +45,80 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org/
 
-      - name: Install
-        run: pnpm install --frozen-lockfile
-
-      - name: Check
-        run: pnpm check
-
-      - name: Validate package version matches tag
+      - name: Resolve and validate version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
-          TAG="${{ github.event_name == 'workflow_dispatch' && (startsWith(inputs.tag, 'v') && inputs.tag || format('v{0}', inputs.tag)) || github.ref_name }}"
-          TAG_VERSION="${TAG#v}"
-          if [ "$VERSION" != "$TAG_VERSION" ]; then
-            echo "package.json version $VERSION does not match tag $TAG"
+          set -euo pipefail
+
+          VERSION="${INPUT_VERSION#v}"
+          TAG="v${VERSION}"
+          PACKAGE_NAME="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).name")"
+          PACKAGE_VERSION="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
+
+          if ! node -e "const v = process.env.VERSION; if (!/^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$/.test(v)) process.exit(1)" ; then
+            echo "Invalid version: ${INPUT_VERSION}. Use a semver version such as 0.1.1."
             exit 1
           fi
 
+          if [ "${PACKAGE_VERSION}" != "${VERSION}" ]; then
+            echo "package.json version ${PACKAGE_VERSION} does not match requested version ${VERSION}."
+            exit 1
+          fi
+
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "Git tag ${TAG} already exists."
+            exit 1
+          fi
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "GitHub Release ${TAG} already exists."
+            exit 1
+          fi
+
+          if npm view "${PACKAGE_NAME}@${VERSION}" version --registry https://registry.npmjs.org/ >/dev/null 2>&1; then
+            echo "npm package ${PACKAGE_NAME}@${VERSION} already exists."
+            exit 1
+          fi
+
+          {
+            echo "VERSION=${VERSION}"
+            echo "TAG=${TAG}"
+            echo "PACKAGE_NAME=${PACKAGE_NAME}"
+          } >> "${GITHUB_ENV}"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Create and push git tag
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "${PACKAGE_NAME}@${VERSION}"
+          git push origin "${TAG}"
+
+      - name: Check and build
+        run: pnpm check
+
       - name: Verify package contents
         run: pnpm pack:dry-run
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${RELEASE_NOTES}" ]; then
+            NOTES_FILE="$(mktemp)"
+            printf '%s\n' "${RELEASE_NOTES}" > "${NOTES_FILE}"
+            gh release create "${TAG}" --verify-tag --title "${TAG}" --notes-file "${NOTES_FILE}"
+          else
+            gh release create "${TAG}" --verify-tag --title "${TAG}" --generate-notes
+          fi
 
       - name: Publish to npm
         run: npm publish --access public --provenance
