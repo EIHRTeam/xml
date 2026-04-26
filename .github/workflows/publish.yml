@@ -57,7 +57,7 @@ jobs:
           PACKAGE_NAME="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).name")"
           PACKAGE_VERSION="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
 
-          if ! node -e "const v = process.env.VERSION; if (!/^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$/.test(v)) process.exit(1)" ; then
+          if ! VERSION="${VERSION}" node -e "const v = process.env.VERSION; if (!/^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$/.test(v)) process.exit(1)" ; then
             echo "Invalid version: ${INPUT_VERSION}. Use a semver version such as 0.1.1."
             exit 1
           fi
@@ -91,6 +91,12 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: Check and build
+        run: pnpm check
+
+      - name: Verify package contents
+        run: pnpm pack:dry-run
+
       - name: Create and push git tag
         run: |
           set -euo pipefail
@@ -98,12 +104,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "${TAG}" -m "${PACKAGE_NAME}@${VERSION}"
           git push origin "${TAG}"
-
-      - name: Check and build
-        run: pnpm check
-
-      - name: Verify package contents
-        run: pnpm pack:dry-run
 
       - name: Create GitHub Release
         env:
