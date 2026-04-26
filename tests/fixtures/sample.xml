@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sklandDocument>
+    <itemId>1272</itemId>
+    <commitMsg>测试</commitMsg>
+    <metainfo>
+        <name>测试页面（请不要上线）</name>
+        <cover showInDetail="true">https://bbs.hycdn.cn/image/common/20260404/2530977/69d0b1bb2d9e251705bec93e_3eac6ad0.png</cover>
+        <subTypes>
+            <subType id="10000">10001</subType>
+            <subType id="10253">10261</subType>
+            <subType id="10254">10320</subType>
+        </subTypes>
+    </metainfo>
+    <description>
+        这里是词条信息的简介
+        不同的类别的信息可能不同，需要根据实际情况调试
+
+        <b>仅用于调试与程序开发，决不允许上线</b>
+    </description>
+    <chapters name="组件">
+        <chapter size="large" name="通用大型">
+            <tab name="tab1">
+                intab1
+            </tab>
+            <tab name="tab2">
+                intab2
+            </tab>
+        </chapter>
+        <chapter size="middle" name="通用中型">
+        </chapter>
+        <chapter size="small" name="通用小型">
+        </chapter>
+        <chapter size="small" name="图片页签">
+            <tab icon="https://bbs.hycdn.cn/image/common/20260404/2530977/69d0b4a52d9e251705bec94e_56331367.png">
+                第一页的内容
+            </tab>
+            <tab icon="https://bbs.hycdn.cn/image/common/20260404/2530977/69d0b4bcb3527e6cc802d05b_db193eac.png">
+                <imgIntro>
+                    <name>图片展示的名称</name>
+                    <type>图片展示的类型</type>
+                    <imgUrl>https://bbs.hycdn.cn/image/common/20260404/2530977/69d0b502972dca5d7ffe1250_56331367.png</imgUrl>
+                    <description>图片页签和图片展示（这东西真有人用吗）</description>
+                </imgIntro>
+                这是内容，第二页的
+            </tab>
+        </chapter>
+        <chapter size="middle" name="另一个通用中型">
+        </chapter>
+        <chapter size="large" name="无边框表格" table="true">
+            <table>
+                <row>
+                    <cell label="A1">A2</cell>
+                    <cell label="A3">A4</cell>
+                </row>
+                <row>
+                    <cell label="B1">B2</cell>
+                    <cell label="B3">B4</cell>
+                </row>
+                <row>
+                    <cell label="C1">C2</cell>
+                    <cell label="C3">C4（这东西没人用吧应该）</cell>
+                </row>
+            </table>
+        </chapter>
+        <chapter size="large" name="多媒体" audio="true">
+            <audios>
+                <audio name="最后的骑士" src="https://bbs.hycdn.cn/audio/wiki/2026/04/04/2530977/67edb5cedd65151d5f22b00db290edce.mp3">
+                    童话中的骑士。对了，这个东西不支持富文本。
+                </audio>
+                <audio name="Compass" src="https://bbs.hycdn.cn/audio/wiki/2026/04/04/2530977/5b6c4fd3baff573940a7bc48285db604.mp3">
+                    compass简介
+                </audio>
+            </audios>
+        </chapter>
+    </chapters>
+    <chapters name="文字样式">
+        <chapter size="large" name="染色展示">
+            标题：
+            <h1>一级标题</h1>
+            <h2>二级标题</h2>
+            <h3>三级标题</h3>
+
+            染色文本：
+            <color value="s_1">1/</color><color value="s_2">2/</color><color value="s_3">3/</color><color value="s_4">4/</color>
+            <color value="r_1">1/</color><color value="r_2">2/</color><color value="r_3">3/</color><color value="r_4">4/</color><color value="r_5">5/</color><color value="r_6">6/</color>
+            <color value="f_orange">1/</color><color value="f_turquoise">2/</color><color value="f_green">3/</color><color value="f_sandstone">4/</color><color value="f_yellow">5/</color><color value="f_red">6/</color><color value="f_blue">7/</color><color value="f_brown">8/</color><color value="f_violet">9/</color><color value="f_blueness">10/</color>
+
+            斜体：
+            <i>斜体</i>
+
+            下划线：
+            <u>下划线</u>
+
+            删除：
+            <s>凯尔希</s>
+
+            注音（注音后不支持其他样式）：
+            <pron>后|Hou|会|Hui|有|You|期|Qi|</pron>
+            <pron>我是谁？|Who Am I?|</pron>
+
+            杂交：
+            <b><i><s><u><color value="r_2">除了</color><color value="r_5">注音</color><color value="r_2">随便用</color></u></s></i></b>
+        </chapter>
+        <chapter size="middle" name="引用">
+            <quote>
+                引用1
+                换行2
+                第三行
+            </quote>
+            间隔
+            <quote>
+                第二个
+            </quote>
+        </chapter>
+        <chapter size="small" name="列表">
+            <ul>
+                <li>无序列表</li>
+                <li>第二条</li>
+                <ul>
+                    <li>第二条的子条目</li>
+                    <ul>
+                        <li>第二条子条目的子条目</li>
+                    </ul>
+                </ul>
+                <ul>
+                    <li>第二条的第二个子条目</li>
+                    <ul>
+                        <li>绕晕了</li>
+                        <li>第二个绕晕了</li>
+                    </ul>
+                </ul>
+            </ul>
+
+            <ol>
+                <li>有序列表</li>
+                <li>第二条</li>
+                <ol>
+                    <li>第二条（abc.）</li>
+                    <ol>
+                        <li>（i.，ii.）</li>
+                        <li>和无序应该差不多</li>
+                    </ol>
+                </ol>
+            </ol>
+        </chapter>
+        <chapter size="large" name="不同的对齐">
+            <align value="left">向左看！</align>
+            <align value="center">向中看！</align>
+            <align value="right">向右看！</align>
+            <align value="center"><a href="https://bilibili.com/">其他东西居中</a></align>
+        </chapter>
+    </chapters>
+    <chapters name="其他零件">
+        <chapter size="small" name="图片">
+            <img>
+                <width>254</width>
+                <height>254</height>
+                <size>8614</size>
+                <url>https://bbs.hycdn.cn/image/common/20260404/2530977/69d0bb252d9e251705bec96f_96d20048.webp</url>
+                <description>描述图片</description>
+            </img>
+        </chapter>
+        <chapter size="small" name="链接">
+            <a href="https://bilibili.com/">你所热爱</a>
+        </chapter>
+        <chapter size="small" name="引用">
+            <entry type="card-big" count="0" id="8"></entry>大卡片
+            <entry type="card-big" count="7" id="8"></entry>七个洛茜之大卡片
+            <entry type="link-img" count="0" id="8"></entry>图片链接
+            <entry type="link-img" count="6" id="8"></entry>六个洛茜之图片链接
+            <entry type="link-txt" count="0" id="1130"></entry>文字链接
+            <entry type="link-txt" count="1000" id="1056"></entry>一千个汤汤券
+        </chapter>
+        <chapter size="large" name="分割线">
+            <line kind="1"></line>
+            <line kind="2"></line>
+            <line kind="3"></line>
+            <line kind="4"></line>
+            <line kind="5"></line>
+            从上往下的五种
+        </chapter>
+        <chapter size="large" name="最神秘的表格">
+            <table header="none" widths="386.6666666666667,386.6666666666667,386.6666666666667">
+                <tr>
+                    <td>最简单的2x3表格 A1</td>
+                    <td>A2</td>
+                    <td>A3</td>
+                </tr>
+                <tr>
+                    <td>B1</td>
+                    <td>B2</td>
+                    <td>B3</td>
+                </tr>
+            </table>
+            <table header="none" widths="290,290,290,290">
+                <tr>
+                    <td>合并了单元格的3x4 A1</td>
+                    <td>A2</td>
+                    <td rowspan="2" colspan="2">
+                        A3A4
+                        B3B4
+                    </td>
+                </tr>
+                <tr>
+                    <td>B1</td>
+                    <td>B2</td>
+                </tr>
+                <tr>
+                    <td>C1</td>
+                    <td>C2</td>
+                    <td>C3</td>
+                    <td>C4</td>
+                </tr>
+            </table>
+            <table header="col" widths="290,290,290,290">
+                <tr>
+                    <th>第一列被设为标题列的3x4 A1</th>
+                    <td>A2</td>
+                    <td>A3</td>
+                    <td>A4</td>
+                </tr>
+                <tr>
+                    <th>B1</th>
+                    <td>B2</td>
+                    <td>B3</td>
+                    <td>B4</td>
+                </tr>
+                <tr>
+                    <th>C1</th>
+                    <td>C2</td>
+                    <td>C3</td>
+                    <td>C4</td>
+                </tr>
+            </table>
+            <table header="both" widths="290,290,290,290">
+                <tr>
+                    <th>行和列都设为标题列 A1</th>
+                    <th>A2</th>
+                    <th>A3</th>
+                    <th>A4</th>
+                </tr>
+                <tr>
+                    <th>B1</th>
+                    <td>B2</td>
+                    <td>B3</td>
+                    <td>B4</td>
+                </tr>
+            </table>
+            <table header="row" widths="290,290,290,290">
+                <tr>
+                    <th>第一行被设为标题行 A1</th>
+                    <th>A2</th>
+                    <th>A3</th>
+                    <th>A4</th>
+                </tr>
+                <tr>
+                    <td>B1</td>
+                    <td>B2</td>
+                    <td>B3</td>
+                    <td>B4</td>
+                </tr>
+            </table>
+            <table header="row" widths="165.71428571428572,165.71428571428572,165.71428571428572,165.71428571428572,165.71428571428572,165.71428571428572,165.71428571428572">
+                <tr>
+                    <th>生异形啊哥们 A1</th>
+                    <th>A2</th>
+                    <th>A3</th>
+                    <th>A4</th>
+                    <th>A5</th>
+                    <th>A6</th>
+                    <th>A7</th>
+                </tr>
+                <tr>
+                    <td>B1</td>
+                    <td rowspan="2" colspan="2">
+                        B2B3
+                        C2C3
+                    </td>
+                    <td>B4</td>
+                    <td rowspan="3" colspan="3">
+                        B5B6B7
+                        C5C6C7
+                        D5D6D7
+                    </td>
+                </tr>
+                <tr>
+                    <td>C1</td>
+                    <td>C4</td>
+                </tr>
+                <tr>
+                    <td>C1</td>
+                    <td>C2</td>
+                    <td>C3</td>
+                    <td>C4</td>
+                </tr>
+                <tr>
+                    <td>D1</td>
+                    <td colspan="4">D2D3D4D5</td>
+                    <td>D6</td>
+                    <td>D7</td>
+                </tr>
+            </table>
+            <table header="none" widths="386.6666666666667,386.6666666666667,386.6666666666667">
+                <tr>
+                    <td>表格里当然可以塞富文本 A1</td>
+                    <td>
+                        <color value="r_2">A2（绿色）</color>
+                    </td>
+                    <td>
+                        <b>A3（粗体）</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        B1有一个分割线
+                        <line kind="1"></line>
+                    </td>
+                    <td>
+                        B2有一个词条
+                        <entry type="card-big" count="0" id="156"></entry>
+                    </td>
+                    <td>
+                        B3塞图片
+                        <img>
+                            <width>254</width>
+                            <height>254</height>
+                            <size>14808</size>
+                            <url>https://bbs.hycdn.cn/image/common/20260404/2530977/69d0bd5c2f37943f5acfb1c1_65de0095.webp</url>
+                            <description>你可能需要回复理智了亲</description>
+                        </img>
+                    </td>
+                </tr>
+            </table>
+        </chapter>
+    </chapters>
+</sklandDocument>

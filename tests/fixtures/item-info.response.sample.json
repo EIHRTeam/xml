@@ -1,0 +1,160 @@
+{
+  "code": 0,
+  "message": "OK",
+  "timestamp": "1776017920",
+  "data": {
+    "item": {
+      "itemId": "1272",
+      "name": "Sample Item",
+      "lang": "zh_Hans",
+      "status": 1,
+      "tagIds": [],
+      "createdUser": {
+        "id": "1",
+        "nickname": "Author"
+      },
+      "lastUpdatedUser": {
+        "id": "1",
+        "nickname": "Author"
+      },
+      "lastAuditPassedAt": "1776017728",
+      "mainType": {
+        "id": "1",
+        "name": "Main"
+      },
+      "subType": {
+        "id": "10000",
+        "name": "Subtype"
+      },
+      "brief": {
+        "name": "Sample Item",
+        "cover": "https://example.invalid/sample-cover.png",
+        "subTypeList": [
+          {
+            "subTypeId": "10000",
+            "value": "10001"
+          }
+        ],
+        "associate": null,
+        "composite": null,
+        "description": {
+          "id": "brief-doc",
+          "version": "1.0.0",
+          "blockIds": [
+            "brief-block"
+          ],
+          "blockMap": {
+            "brief-block": {
+              "id": "brief-block",
+              "parentId": "brief-doc",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "kind": "body",
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "Sample brief description"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "authorMap": {}
+        }
+      },
+      "document": {
+        "chapterGroup": [
+          {
+            "title": "Profile",
+            "widgets": [
+              {
+                "id": "wText",
+                "title": "Overview",
+                "size": "large"
+              },
+              {
+                "id": "wAudio",
+                "title": "Audio",
+                "size": "small"
+              }
+            ]
+          }
+        ],
+        "extraInfo": {
+          "illustration": "",
+          "showType": "",
+          "composite": ""
+        },
+        "widgetCommonMap": {
+          "wText": {
+            "type": "common",
+            "tableList": [],
+            "tabList": [
+              {
+                "tabId": "default",
+                "title": "Overview",
+                "icon": ""
+              }
+            ],
+            "tabDataMap": {
+              "default": {
+                "content": "doc-overview",
+                "intro": null,
+                "audioList": []
+              }
+            }
+          },
+          "wAudio": {
+            "type": "audio",
+            "tableList": [],
+            "tabList": [],
+            "tabDataMap": {
+              "default": {
+                "intro": null,
+                "content": "",
+                "audioList": [
+                  {
+                    "title": "Compass",
+                    "profile": "song",
+                    "resourceUrl": "https://example.invalid/compass.mp3"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "documentMap": {
+          "doc-overview": {
+            "id": "doc-overview",
+            "version": "1.0.0",
+            "blockIds": [
+              "overview-block"
+            ],
+            "blockMap": {
+              "overview-block": {
+                "id": "overview-block",
+                "parentId": "doc-overview",
+                "align": "left",
+                "kind": "text",
+                "text": {
+                  "kind": "body",
+                  "inlineElements": [
+                    {
+                      "kind": "text",
+                      "text": {
+                        "text": "Sample overview text"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
