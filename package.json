@@ -9,12 +9,12 @@
   "packageManager": "pnpm@10.33.2",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eihrteam/xml.git"
+    "url": "git+https://github.com/EIHRTeam/xml.git"
   },
   "bugs": {
-    "url": "https://github.com/eihrteam/xml/issues"
+    "url": "https://github.com/EIHRTeam/xml/issues"
   },
-  "homepage": "https://github.com/eihrteam/xml#readme",
+  "homepage": "https://github.com/EIHRTeam/xml#readme",
   "keywords": [
     "skland",
     "endfield",
