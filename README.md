@@ -16,9 +16,12 @@ pnpm add @eihrteam/xml
 ## 基本用法
 
 ```ts
-import { wikiJsonToXml, xmlToWikiJson } from '@eihrteam/xml'
+import { wikiJsonToXml, wikiJsonToXmlBatch, xmlToWikiJson } from '@eihrteam/xml'
 
 const xml = wikiJsonToXml(infoRootJsonText).text
+const batch = wikiJsonToXmlBatch([
+  { source: infoRootJsonText, meta: { itemId: '1', path: '终末地百科/物品/id1.json' } },
+])
 const infoItemJson = xmlToWikiJson(xml).text
 const infoRootJson = xmlToWikiJson(xml, { wrapInfoRoot: true }).text
 ```
@@ -27,6 +30,7 @@ const infoRootJson = xmlToWikiJson(xml, { wrapInfoRoot: true }).text
 
 - `xmlToWikiJson(xml, options?)`
 - `wikiJsonToXml(json)`
+- `wikiJsonToXmlBatch(entries)`
 - `convert(source, { from, to, ...options })`
 - `parseWikiJson(source)`
 - `parseXml(source)`
@@ -42,6 +46,19 @@ interface ConversionResult {
   warnings: string[]
 }
 ```
+
+`wikiJsonToXmlBatch(entries)` 接收 `{ source, meta? }[]`，其中 `source` 是单个
+`InfoRoot` 或 `InfoItem`。返回值为：
+
+```ts
+interface WikiJsonToXmlBatchResult<TMeta = unknown> {
+  items: Array<ConversionResult & { meta?: TMeta }>
+  warnings: string[]
+}
+```
+
+每个 `items[]` 元素保留输入 `meta` 和单项 `warnings`；顶层 `warnings` 是带 batch
+index 前缀的汇总。任一条目转换失败会直接抛错，错误信息包含失败的 batch index。
 
 ## 数据范围
 
