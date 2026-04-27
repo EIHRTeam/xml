@@ -1,4 +1,10 @@
-export type { ConversionResult, XmlWikiFormat } from './types'
+export type {
+  ConversionResult,
+  WikiJsonToXmlBatchEntry,
+  WikiJsonToXmlBatchItem,
+  WikiJsonToXmlBatchResult,
+  XmlWikiFormat,
+} from './types'
 export type {
   AudioItem,
   Block,
@@ -24,7 +30,7 @@ export type {
   TextRunInline,
 } from './model'
 export { XmlWikiConversionError } from './model'
-export { convert, wikiJsonToXml, xmlToWikiJson, type ConvertOptions } from './convert'
+export { convert, wikiJsonToXml, wikiJsonToXmlBatch, xmlToWikiJson, type ConvertOptions } from './convert'
 export {
   documentFromJsonText as parseWikiJsonWithWarnings,
   documentToJsonText as renderWikiJson,

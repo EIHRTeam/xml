@@ -7,6 +7,7 @@ import {
   parseWikiJson,
   parseXml,
   wikiJsonToXml,
+  wikiJsonToXmlBatch,
   xmlToWikiJson,
   XmlWikiConversionError,
   type Block,
@@ -72,6 +73,33 @@ describe('@eihrteam/xml conversion', () => {
     const renderedItem = JSON.parse(xmlToWikiJson(xml).text) as Record<string, unknown>
 
     expect(parseWikiJson(renderedItem)).toEqual(parseWikiJson(infoItem))
+  })
+
+  test('converts wiki JSON entries to XML as a batch', () => {
+    const batch = wikiJsonToXmlBatch([
+      { source: infoRootText, meta: { itemId: 'root' } },
+      { source: infoItem, meta: { itemId: 'item' } },
+    ])
+
+    expect(batch.items).toHaveLength(2)
+    expect(batch.items[0]?.meta).toEqual({ itemId: 'root' })
+    expect(batch.items[1]?.meta).toEqual({ itemId: 'item' })
+    expect(batch.items[0]?.text).toContain('<sklandDocument>')
+    expect(batch.items[1]?.text).toContain('<sklandDocument>')
+    expect(batch.warnings).toEqual(
+      batch.items.flatMap((item, index) =>
+        item.warnings.map((warning) => `entry ${index}: ${warning}`)
+      )
+    )
+  })
+
+  test('includes the batch index when a wiki JSON batch entry fails', () => {
+    expect(() =>
+      wikiJsonToXmlBatch([
+        { source: infoRootText },
+        { source: { itemId: 'bad' } },
+      ])
+    ).toThrow(/entry 1 failed/)
   })
 
   test('can render an InfoRoot envelope when requested', () => {
