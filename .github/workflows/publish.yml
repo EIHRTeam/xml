@@ -68,26 +68,54 @@ jobs:
             exit 1
           fi
 
+          HEAD_SHA="$(git rev-parse HEAD)"
+          TAG_EXISTS=false
+          RELEASE_EXISTS=false
+          NPM_EXISTS=false
+          SOURCE_REF=HEAD
+
           if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
-            echo "Git tag ${TAG} already exists."
-            exit 1
+            git fetch --force origin "refs/tags/${TAG}:refs/tags/${TAG}"
+            TAG_SHA="$(git rev-list -n 1 "${TAG}")"
+            echo "Git tag ${TAG} already exists at ${TAG_SHA}; current HEAD is ${HEAD_SHA}."
+            echo "Using tagged source for this publish attempt."
+            TAG_EXISTS=true
+            SOURCE_REF="${TAG}"
           fi
 
           if gh release view "${TAG}" >/dev/null 2>&1; then
-            echo "GitHub Release ${TAG} already exists."
-            exit 1
+            echo "GitHub Release ${TAG} already exists; skipping release creation."
+            RELEASE_EXISTS=true
           fi
 
           if npm view "${PACKAGE_NAME}@${VERSION}" version --registry https://registry.npmjs.org/ >/dev/null 2>&1; then
-            echo "npm package ${PACKAGE_NAME}@${VERSION} already exists."
-            exit 1
+            echo "npm package ${PACKAGE_NAME}@${VERSION} already exists; skipping npm publish."
+            NPM_EXISTS=true
           fi
 
           {
             echo "VERSION=${VERSION}"
             echo "TAG=${TAG}"
             echo "PACKAGE_NAME=${PACKAGE_NAME}"
+            echo "TAG_EXISTS=${TAG_EXISTS}"
+            echo "RELEASE_EXISTS=${RELEASE_EXISTS}"
+            echo "NPM_EXISTS=${NPM_EXISTS}"
+            echo "SOURCE_REF=${SOURCE_REF}"
           } >> "${GITHUB_ENV}"
+
+      - name: Checkout existing tag source
+        run: |
+          set -euo pipefail
+          if [ "${TAG_EXISTS}" != "true" ]; then
+            exit 0
+          fi
+
+          git checkout --detach "${SOURCE_REF}"
+          TAG_PACKAGE_VERSION="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
+          if [ "${TAG_PACKAGE_VERSION}" != "${VERSION}" ]; then
+            echo "Tagged package.json version ${TAG_PACKAGE_VERSION} does not match requested version ${VERSION}."
+            exit 1
+          fi
 
       - name: Install
         run: pnpm install --frozen-lockfile
@@ -101,6 +129,10 @@ jobs:
       - name: Create and push git tag
         run: |
           set -euo pipefail
+          if [ "${TAG_EXISTS}" = "true" ]; then
+            exit 0
+          fi
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "${TAG}" -m "${PACKAGE_NAME}@${VERSION}"
@@ -112,6 +144,9 @@ jobs:
           RELEASE_NOTES: ${{ inputs.release_notes }}
         run: |
           set -euo pipefail
+          if [ "${RELEASE_EXISTS}" = "true" ]; then
+            exit 0
+          fi
 
           if [ -n "${RELEASE_NOTES}" ]; then
             NOTES_FILE="$(mktemp)"
@@ -122,15 +157,38 @@ jobs:
           fi
 
       - name: Publish to npm
-        run: npm publish --access public --provenance
+        run: |
+          set -euo pipefail
+          if [ "${NPM_EXISTS}" = "true" ]; then
+            exit 0
+          fi
+
+          npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish to GitHub Packages
         run: |
+          set -euo pipefail
+
+          GITHUB_PACKAGE_NAME="@EIHRTeam/xml"
+          NPMRC="${NPM_CONFIG_USERCONFIG:-${HOME}/.npmrc}"
+          npm config delete always-auth --userconfig "${NPMRC}" >/dev/null 2>&1 || true
+          {
+            echo "@EIHRTeam:registry=https://npm.pkg.github.com/"
+            echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}"
+          } >> "${NPMRC}"
+
+          if npm view "${GITHUB_PACKAGE_NAME}@${VERSION}" version --registry=https://npm.pkg.github.com/ >/dev/null 2>&1; then
+            echo "GitHub Package ${GITHUB_PACKAGE_NAME}@${VERSION} already exists; skipping GitHub Packages publish."
+            exit 0
+          fi
+
           ORIGINAL_NAME="$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).name")"
-          node -e "const p=require('./package.json');p.name='@EIHRTeam/xml';require('fs').writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
-          npm publish --registry=https://npm.pkg.github.com/
-          node -e "const p=require('./package.json');p.name='${ORIGINAL_NAME}';require('fs').writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          export ORIGINAL_NAME GITHUB_PACKAGE_NAME
+          trap 'node -e "const fs=require(\"node:fs\");const p=JSON.parse(fs.readFileSync(\"package.json\",\"utf8\"));p.name=process.env.ORIGINAL_NAME;fs.writeFileSync(\"package.json\",JSON.stringify(p,null,2)+\"\\n\")"' EXIT
+          node -e "const fs=require('node:fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.name=process.env.GITHUB_PACKAGE_NAME;fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          npm pkg fix
+          npm publish --registry=https://npm.pkg.github.com/ --ignore-scripts
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}
