@@ -39,7 +39,7 @@
   "scripts": {
     "prepack": "pnpm build",
     "prepublishOnly": "pnpm check",
-    "build": "tsup src/index.ts --format esm --dts --clean --target es2022",
+    "build": "tsup src/index.ts --format esm --dts --clean --target es2022 --minify",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "pack:dry-run": "pnpm build && pnpm pack --dry-run",
