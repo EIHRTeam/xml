@@ -18,3 +18,17 @@ export interface WikiJsonToXmlBatchResult<TMeta = unknown> {
   items: WikiJsonToXmlBatchItem<TMeta>[]
   warnings: string[]
 }
+
+export interface ConversionBatchEntry<TMeta = unknown> {
+  source: string
+  meta?: TMeta
+}
+
+export interface ConversionBatchItem<TMeta = unknown> extends ConversionResult {
+  meta?: TMeta
+}
+
+export interface ConversionBatchResult<TMeta = unknown> {
+  items: ConversionBatchItem<TMeta>[]
+  warnings: string[]
+}
