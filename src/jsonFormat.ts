@@ -172,8 +172,11 @@ function extractInfoItem(parsed: unknown) {
   )
 }
 
-export function documentFromJsonText(source: string | object): [DocumentModel, string[]] {
-  const { item, infoRootMeta } = extractInfoItem(parseJsonInput(source))
+function buildDocumentFromItem(
+  item: Record<string, unknown>,
+  infoRootMeta: Record<string, unknown>,
+  commitMsg: string | undefined,
+): DocumentModel {
   const brief = requireMapping(item, 'item.brief', 'brief')
   const content = requireMapping(item, 'item.document', 'document')
   const chapterGroupsData = requireList(content, 'item.document.chapterGroup', 'chapterGroup')
@@ -201,29 +204,45 @@ export function documentFromJsonText(source: string | object): [DocumentModel, s
     }
   })
 
-  return [
-    {
-      itemId: requireString(item, 'item.itemId', 'itemId'),
-      infoRootMeta,
-      publicMeta: omitKeys(item, ['itemId', 'brief', 'document']),
-      briefExtra: omitKeys(brief, [
-        'name',
-        'cover',
-        'disableCoverShowInDetail',
-        'subTypeList',
-        'description',
-      ]),
-      documentExtraInfo: normalizeMetaRecord(content.extraInfo),
-      name: requireString(brief, 'item.brief.name', 'name'),
-      cover: requireString(brief, 'item.brief.cover', 'cover'),
-      showInDetail: !Boolean(brief.disableCoverShowInDetail),
-      subTypes,
-      descriptionWasNull: description.wasNull,
-      description: description.blocks,
-      chapterGroups,
-    },
-    [],
-  ]
+  return {
+    itemId: requireString(item, 'item.itemId', 'itemId'),
+    infoRootMeta,
+    publicMeta: omitKeys(item, ['itemId', 'brief', 'document']),
+    briefExtra: omitKeys(brief, [
+      'name',
+      'cover',
+      'disableCoverShowInDetail',
+      'subTypeList',
+      'description',
+    ]),
+    documentExtraInfo: normalizeMetaRecord(content.extraInfo),
+    name: requireString(brief, 'item.brief.name', 'name'),
+    cover: requireString(brief, 'item.brief.cover', 'cover'),
+    showInDetail: !Boolean(brief.disableCoverShowInDetail),
+    subTypes,
+    descriptionWasNull: description.wasNull,
+    description: description.blocks,
+    chapterGroups,
+    ...(commitMsg !== undefined ? { commitMsg } : {}),
+  }
+}
+
+export function documentFromJsonText(source: string | object): [DocumentModel, string[]] {
+  const { item, infoRootMeta } = extractInfoItem(parseJsonInput(source))
+  return [buildDocumentFromItem(item, infoRootMeta, undefined), []]
+}
+
+export function parseSubmitJson(source: string | object): [DocumentModel, string[]] {
+  const parsed = ensureMapping(parseJsonInput(source), 'root')
+
+  if (!isRecord(parsed.item) || !isRecord(parsed.item.brief) || !isRecord(parsed.item.document)) {
+    throw new EndfieldWikitextConversionError(
+      'Submit JSON must be an object containing `item` with `brief` and `document`.'
+    )
+  }
+
+  const commitMsg = typeof parsed.commitMsg === 'string' ? parsed.commitMsg : undefined
+  return [buildDocumentFromItem(parsed.item, {}, commitMsg), []]
 }
 
 export function documentToWikiJsonObject(
@@ -305,6 +324,15 @@ export function documentToJsonText(
 ) {
   const payload = documentToWikiJsonObject(document, options)
 
+  return `${JSON.stringify(payload, null, 4)}\n`
+}
+
+export function renderSubmitJson(document: DocumentModel): string {
+  const item = documentToWikiJsonObject(document)
+  const payload = {
+    commitMsg: document.commitMsg ?? '',
+    item,
+  }
   return `${JSON.stringify(payload, null, 4)}\n`
 }
 
@@ -654,12 +682,14 @@ function inlinesFromJson(inlineElements: unknown[]): Inline[] {
       const colorName = typeof entry.color === 'string' ? entry.color : null
       let xmlColor: string | null = null
 
+      if (colorName && !(colorName in JSON_TO_XML_COLOR)) {
+        throw new EndfieldWikitextConversionError(`Unsupported JSON color '${colorName}'.`)
+      }
+
       if (colorName && colorName !== DEFAULT_JSON_TEXT_COLOR) {
-        xmlColor = JSON_TO_XML_COLOR[colorName] ?? null
+        xmlColor = JSON_TO_XML_COLOR[colorName]!
       } else if (colorName === DEFAULT_JSON_TEXT_COLOR && hasExplicitScaleColors) {
         xmlColor = JSON_TO_XML_COLOR[colorName]
-      } else if (colorName && !JSON_TO_XML_COLOR[colorName]) {
-        throw new EndfieldWikitextConversionError(`Unsupported JSON color '${colorName}'.`)
       }
 
       const textPayload = requireMapping(entry, 'inline.text', 'text')

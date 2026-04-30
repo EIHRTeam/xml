@@ -1,4 +1,7 @@
 export type {
+  ConversionBatchEntry,
+  ConversionBatchItem,
+  ConversionBatchResult,
   ConversionResult,
   WikiJsonToXmlBatchEntry,
   WikiJsonToXmlBatchItem,
@@ -30,11 +33,24 @@ export type {
   TextRunInline,
 } from './model'
 export { XmlWikiConversionError } from './model'
-export { convert, wikiJsonToXml, wikiJsonToXmlBatch, xmlToWikiJson, type ConvertOptions } from './convert'
+export {
+  convert,
+  submitJsonToWikiJson,
+  submitJsonToXml,
+  wikiJsonToSubmitJson,
+  wikiJsonToXml,
+  wikiJsonToXmlBatch,
+  xmlToSubmitJson,
+  xmlToWikiJson,
+  xmlToWikiJsonBatch,
+  type ConvertOptions,
+} from './convert'
 export {
   documentFromJsonText as parseWikiJsonWithWarnings,
   documentToJsonText as renderWikiJson,
   documentToWikiJsonObject,
+  parseSubmitJson,
+  renderSubmitJson,
   type RenderWikiJsonOptions,
 } from './jsonFormat'
 export { documentFromXmlText as parseXmlWithWarnings, documentToXmlText as renderXml } from './xmlFormat'

@@ -4,11 +4,18 @@ import { describe, expect, test, vi } from 'vitest'
 import { DOMParser as XmldomDOMParser } from '@xmldom/xmldom'
 
 import {
+  parseSubmitJson,
   parseWikiJson,
   parseXml,
+  renderSubmitJson,
+  submitJsonToWikiJson,
+  submitJsonToXml,
+  wikiJsonToSubmitJson,
   wikiJsonToXml,
   wikiJsonToXmlBatch,
+  xmlToSubmitJson,
   xmlToWikiJson,
+  xmlToWikiJsonBatch,
   XmlWikiConversionError,
   type Block,
   type DocumentModel,
@@ -242,5 +249,91 @@ describe('@eihrteam/xml conversion', () => {
 
   test('rejects wiki JSON without the public item shape', () => {
     expect(() => parseWikiJson({ itemId: '1' })).toThrow(XmlWikiConversionError)
+  })
+
+  test('parses submit JSON with commitMsg', () => {
+    const submitPayload = {
+      commitMsg: '测试编辑',
+      item: infoItem,
+    }
+    const [document] = parseSubmitJson(submitPayload)
+
+    expect(document.commitMsg).toBe('测试编辑')
+    expect(document.name).toBe((infoItem as any).name)
+    expect(document.itemId).toBe(String((infoItem as any).itemId))
+  })
+
+  test('submit JSON round-trips through XML preserving commitMsg', () => {
+    const submitPayload = {
+      commitMsg: '测试编辑',
+      item: infoItem,
+    }
+    const xml = submitJsonToXml(submitPayload).text
+
+    expect(xml).toContain('<sklandDocument>')
+    expect(xml).toContain('<commitMsg>测试编辑</commitMsg>')
+
+    const rendered = JSON.parse(xmlToSubmitJson(xml).text)
+    expect(rendered.commitMsg).toBe('测试编辑')
+    expect(rendered.item.brief.name).toBe((infoItem as any).brief.name)
+  })
+
+  test('commitMsg survives XML → InfoItem round-trip', () => {
+    const submitPayload = {
+      commitMsg: '编辑说明',
+      item: infoItem,
+    }
+    const xml = submitJsonToXml(submitPayload).text
+    const infoResult = xmlToWikiJson(xml)
+    const rendered = JSON.parse(infoResult.text)
+
+    expect(rendered.brief.name).toBe((infoItem as any).brief.name)
+    expect(rendered).not.toHaveProperty('commitMsg')
+  })
+
+  test('submit JSON round-trips via wiki-json', () => {
+    const submitPayload = {
+      commitMsg: '测试',
+      item: infoItem,
+    }
+    const wikiResult = submitJsonToWikiJson(submitPayload)
+    const rendered = JSON.parse(wikiResult.text)
+    expect(rendered).toHaveProperty('brief')
+    expect(rendered).toHaveProperty('document')
+
+    const backToSubmit = JSON.parse(wikiJsonToSubmitJson(wikiResult.text).text)
+    expect(backToSubmit).toHaveProperty('commitMsg')
+    expect(backToSubmit).toHaveProperty('item')
+  })
+
+  test('bare InfoItem is not mistaken for submit JSON', () => {
+    expect(() => parseSubmitJson(infoItem)).toThrow(/must be an object containing `item`/)
+  })
+
+  test('converts XML entries to wiki JSON as a batch', () => {
+    const batch = xmlToWikiJsonBatch([
+      { source: sampleXmlText, meta: { itemId: 'sample' } },
+      { source: '<sklandDocument><itemId>1</itemId><metainfo><name>n</name><cover showInDetail="true">https://example.com/c.png</cover><subTypes></subTypes></metainfo><description></description></sklandDocument>', meta: { itemId: 'minimal' } },
+    ])
+
+    expect(batch.items).toHaveLength(2)
+    expect(batch.items[0]?.meta).toEqual({ itemId: 'sample' })
+    expect(batch.items[1]?.meta).toEqual({ itemId: 'minimal' })
+    expect(batch.items[0]?.text).toContain('"brief"')
+    expect(batch.items[1]?.text).toContain('"brief"')
+    expect(batch.warnings).toEqual(
+      batch.items.flatMap((item, index) =>
+        item.warnings.map((warning) => `entry ${index}: ${warning}`)
+      )
+    )
+  })
+
+  test('includes the batch index when an XML batch entry fails', () => {
+    expect(() =>
+      xmlToWikiJsonBatch([
+        { source: sampleXmlText },
+        { source: '<invalid>' },
+      ])
+    ).toThrow(/entry 1 failed/)
   })
 })

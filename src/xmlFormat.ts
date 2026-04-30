@@ -171,9 +171,12 @@ function parsePublicMeta(root: Element): Required<XmlPublicMeta> {
     throw new EndfieldWikitextConversionError('<publicMeta> must contain a JSON object.')
   }
 
+  const itemMeta = normalizeMetaRecord(parsed.item ?? parsed)
+  delete itemMeta.commitMsg
+
   return {
     infoRoot: normalizeMetaRecord(parsed.infoRoot),
-    item: normalizeMetaRecord(parsed.item ?? parsed),
+    item: itemMeta,
     brief: normalizeMetaRecord(parsed.brief),
     documentExtraInfo: normalizeMetaRecord(parsed.documentExtraInfo),
   }
@@ -186,6 +189,7 @@ export function documentFromXmlText(source: string): [DocumentModel, string[]] {
   }
 
   const publicMeta = parsePublicMeta(root)
+  const commitMsgEl = optionalChild(root, 'commitMsg')
   const metainfo = requireChild(root, 'metainfo')
   const cover = requireChild(metainfo, 'cover')
   const subTypesContainer = requireChild(metainfo, 'subTypes')
@@ -231,6 +235,7 @@ export function documentFromXmlText(source: string): [DocumentModel, string[]] {
         (descriptionElement.getAttribute('source') || '').toLowerCase() === 'null',
       description: parseMixedBlocks(descriptionElement, { allowTables: true }),
       chapterGroups,
+      ...(commitMsgEl ? { commitMsg: directTextContent(commitMsgEl) } : {}),
     },
     [],
   ]
@@ -937,6 +942,9 @@ function appendInlineText(
 export function documentToXmlText(document: DocumentModel): string {
   const lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<sklandDocument>']
   lines.push(`    <itemId>${escapeXmlText(document.itemId)}</itemId>`)
+  if (document.commitMsg !== undefined) {
+    lines.push(`    <commitMsg>${escapeXmlText(document.commitMsg)}</commitMsg>`)
+  }
   const meta = {
     infoRoot: document.infoRootMeta,
     item: document.publicMeta,

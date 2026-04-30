@@ -160,6 +160,7 @@ export interface DocumentModel {
   descriptionWasNull: boolean
   description: Block[]
   chapterGroups: ChapterGroup[]
+  commitMsg?: string
 }
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
