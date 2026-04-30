@@ -116,3 +116,11 @@ interface WikiJsonToXmlBatchResult<TMeta = unknown> {
 - Node.js 20 及以上。
 - 浏览器环境优先使用 `globalThis.DOMParser`。
 - Node 环境使用 `@xmldom/xmldom`。
+
+## 鸣谢
+
+- [曾小皮](ZengXiaoPi) - XML 格式标准与初版 XML-JSON 互转工具
+
+## 许可证
+
+MIT
