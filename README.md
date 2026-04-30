@@ -119,7 +119,7 @@ interface WikiJsonToXmlBatchResult<TMeta = unknown> {
 
 ## 鸣谢
 
-- [曾小皮](ZengXiaoPi) - XML 格式标准与初版 XML-JSON 互转工具
+- [曾小皮](https://github.com/ZengXiaoPi) - XML 格式标准与初版 XML-JSON 互转工具
 
 ## 许可证
 
