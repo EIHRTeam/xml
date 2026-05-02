@@ -82,6 +82,109 @@ describe('@eihrteam/xml conversion', () => {
     expect(parseWikiJson(renderedItem)).toEqual(parseWikiJson(infoItem))
   })
 
+  test('renders every wiki JSON list content block as a li element', () => {
+    const payload = structuredClone(infoRoot) as Record<string, any>
+    const overviewDoc = payload.data.item.document.documentMap['doc-overview']
+    const blockMap = {
+      'overview-list': {
+        id: 'overview-list',
+        parentId: 'doc-overview',
+        kind: 'list',
+        list: {
+          id: 'overview-list',
+          kind: 'unordered',
+          itemIds: ['list-item'],
+          itemMap: {
+            'list-item': {
+              id: 'list-item',
+              childIds: ['list-line-1', 'list-line-2', 'list-line-3', 'list-line-4'],
+            },
+          },
+        },
+      },
+      'list-line-1': {
+        id: 'list-line-1',
+        parentId: 'list-item',
+        align: 'left',
+        kind: 'text',
+        text: {
+          kind: 'body',
+          inlineElements: [{ kind: 'text', text: { text: '枢纽区' } }],
+        },
+      },
+      'list-line-2': {
+        id: 'list-line-2',
+        parentId: 'list-item',
+        align: 'left',
+        kind: 'text',
+        text: {
+          kind: 'body',
+          inlineElements: [
+            {
+              kind: 'text',
+              bold: true,
+              color: 'light_rank_yellow',
+              text: { text: '待建设区' },
+            },
+            { kind: 'text', text: { text: '极其容易获取。' } },
+          ],
+        },
+      },
+      'list-line-3': {
+        id: 'list-line-3',
+        parentId: 'list-item',
+        align: 'left',
+        kind: 'text',
+        text: {
+          kind: 'body',
+          inlineElements: [{ kind: 'text', text: { text: '相实的采集点有概率会被替换为' } }],
+        },
+      },
+      'list-line-4': {
+        id: 'list-line-4',
+        parentId: 'list-item',
+        align: 'left',
+        kind: 'text',
+        text: {
+          kind: 'body',
+          inlineElements: [
+            {
+              kind: 'entry',
+              entry: { id: '43', showType: 'link-imgText', count: '0' },
+            },
+            { kind: 'text', text: { text: '的采集点。' } },
+          ],
+        },
+      },
+    }
+
+    overviewDoc.blockIds = ['overview-list']
+    overviewDoc.blockMap = blockMap
+
+    const xml = wikiJsonToXml(payload).text
+    const xmlDocument = new XmldomDOMParser().parseFromString(xml, 'application/xml')
+    const list = xmlDocument.getElementsByTagName('ul')[0]
+    if (!list) {
+      throw new Error('Expected rendered XML to contain a list.')
+    }
+
+    const directElementChildren = Array.from(list.childNodes).filter(
+      (node) => node.nodeType === 1
+    ) as Array<typeof list>
+    const items = directElementChildren.filter((node) => node.tagName === 'li')
+
+    expect(directElementChildren.map((node) => node.tagName)).toEqual(['li', 'li', 'li', 'li'])
+    expect(items.map((node) => node.textContent)).toEqual([
+      '枢纽区',
+      '待建设区极其容易获取。',
+      '相实的采集点有概率会被替换为',
+      '的采集点。',
+    ])
+    expect(items[1]!.getElementsByTagName('b')).toHaveLength(1)
+    expect(items[1]!.getElementsByTagName('color')[0]!.getAttribute('value')).toBe('r_5')
+    expect(items[3]!.getElementsByTagName('entry')[0]!.getAttribute('id')).toBe('43')
+  })
+
   test('converts wiki JSON entries to XML as a batch', () => {
     const batch = wikiJsonToXmlBatch([
       { source: infoRootText, meta: { itemId: 'root' } },

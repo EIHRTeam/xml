@@ -19,7 +19,6 @@ import {
   LinkInline,
   ListBlock,
   ListItem,
-  ParagraphBlock,
   PronunciationInline,
   QuoteBlock,
   SubType,
@@ -1163,24 +1162,7 @@ function renderBlock(block: Block, indent: number): string[] {
     const lines = [`${pad}<${tag}>`]
 
     for (const item of block.items) {
-      if (
-        item.blocks.length === 1 &&
-        isParagraph(item.blocks[0]!) &&
-        item.blocks[0]!.kind === 'body' &&
-        item.blocks[0]!.align === 'left'
-      ) {
-        const [head] = splitListItem(item)
-        lines.push(
-          head.inlines.length
-            ? `${pad}    <li>${renderInlines(head.inlines)}</li>`
-            : `${pad}    <li></li>`
-        )
-        continue
-      }
-
-      lines.push(`${pad}    <li>`)
-      lines.push(...renderBlocks(item.blocks, indent + 8))
-      lines.push(`${pad}    </li>`)
+      lines.push(...renderListItem(item, indent + 4))
     }
 
     lines.push(`${pad}</${tag}>`)
@@ -1303,27 +1285,44 @@ function renderInline(inline: Inline) {
   throw new EndfieldWikitextConversionError('Unsupported inline type.')
 }
 
+function renderListItem(item: ListItem, indent: number): string[] {
+  const blocks = normalizeBlocks(item.blocks)
+  if (!blocks.length) {
+    return [`${' '.repeat(indent)}<li></li>`]
+  }
+
+  const lines: string[] = []
+  for (const block of blocks) {
+    if (isList(block)) {
+      lines.push(...renderBlock(block, indent))
+      continue
+    }
+
+    lines.push(...renderListItemContentBlock(block, indent))
+  }
+  return lines
+}
+
+function renderListItemContentBlock(block: Block, indent: number): string[] {
+  const pad = ' '.repeat(indent)
+  if (isParagraph(block) && block.kind === 'body' && block.align === 'left') {
+    return [
+      block.inlines.length ? `${pad}<li>${renderInlines(block.inlines)}</li>` : `${pad}<li></li>`,
+    ]
+  }
+
+  const lines = [`${pad}<li>`]
+  lines.push(...renderBlock(block, indent + 4))
+  lines.push(`${pad}</li>`)
+  return lines
+}
+
 function openContainer(tag: string, attrs: Record<string, string>, indent: number) {
   const pad = ' '.repeat(indent)
   const renderedAttrs = Object.entries(attrs)
     .map(([name, value]) => ` ${name}=${quoteAttr(value)}`)
     .join('')
   return [`${pad}<${tag}${renderedAttrs}>`]
-}
-
-function splitListItem(item: ListItem): [ParagraphBlock, Block[]] {
-  if (!item.blocks.length) {
-    return [paragraph(), []]
-  }
-
-  const first = item.blocks[0]!
-  if (!isParagraph(first) || first.kind !== 'body' || first.align !== 'left') {
-    throw new EndfieldWikitextConversionError(
-      'List items must start with a left-aligned body paragraph.'
-    )
-  }
-
-  return [first, item.blocks.slice(1)]
 }
 
 function inferImageParts(url: string): [string, string] {
