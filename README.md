@@ -1,5 +1,13 @@
 # @eihrteam/xml
 
+![Node](https://img.shields.io/node/v/%40eihrteam%2Fxml)
+![License](https://img.shields.io/github/license/EIHRTeam/xml)
+![GitHub top language](https://img.shields.io/github/languages/top/EIHRTeam/xml?logo=typescript)
+[![NPM Downloads](https://img.shields.io/npm/d18m/%40eihrteam%2Fxml?logo=npm&label=NPM%20Downloads)
+](https://www.npmjs.com/package/@eihrteam/xml)<br>
+[![Work With Agent Skill](https://img.shields.io/badge/Work_With_Agent_Skill-EIHRTeam%2fskland--wiki--data--skill-blue?logo=github)](https://github.com/EIHRTeam/skland-wiki-data-skill)
+
+
 SKLand Endfield Wiki JSON 与 XML 的本地互转工具包。处理 `item/info` 公开读取模型，不含网络请求、签名、认证或 API replay。
 
 ## 安装
