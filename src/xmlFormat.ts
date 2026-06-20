@@ -398,7 +398,7 @@ function parseMixedBlocks(
     let seenContent = false
     let blankRun = 0
 
-    for (const part of parts) {
+    for (const [index, part] of parts.entries()) {
       const stripped = part.trim()
       if (stripped) {
         if (!seenContent && currentInlines) {
@@ -415,7 +415,13 @@ function parseMixedBlocks(
         }
 
         ensureCurrent().push(textRun(stripped))
-        flushCurrent()
+        // Only close the paragraph when a newline actually follows this text
+        // (i.e. it is not the final part). Otherwise a following inline sibling
+        // on the same line — e.g. `完成主线任务<entry/>` — would be orphaned into
+        // its own paragraph instead of staying inline with the text.
+        if (index < parts.length - 1) {
+          flushCurrent()
+        }
         seenContent = true
         blankRun = 0
       } else if (seenContent || currentInlines) {

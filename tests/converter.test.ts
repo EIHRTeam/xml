@@ -350,6 +350,75 @@ describe('@eihrteam/xml conversion', () => {
     expect(collectBlocks(document).some((block) => block.blockType === 'complexTable')).toBe(true)
   })
 
+  test('keeps an inline entry on the same line as preceding text in a table cell', () => {
+    const sourceXml = `<?xml version="1.0" encoding="UTF-8"?>
+<sklandDocument>
+    <itemId>1</itemId>
+    <metainfo>
+        <name>n</name>
+        <cover showInDetail="true">https://example.com/cover.png</cover>
+        <subTypes></subTypes>
+    </metainfo>
+    <description></description>
+    <chapters name="g">
+        <chapter name="c" size="large">
+            <table header="none" widths="580,580">
+                <tr>
+                    <td col="1">
+                        <b>· </b>完成主线任务<entry type="link-img" count="0" id="1107"></entry>
+                        <b>· </b>权限等阶≥30级
+                    </td>
+                    <td col="2">b</td>
+                </tr>
+            </table>
+        </chapter>
+    </chapters>
+</sklandDocument>`
+    const document = parseXml(sourceXml)
+
+    const table = document.chapterGroups[0]!.chapters[0]!.content[0]!
+    if (table.blockType !== 'complexTable') {
+      throw new Error('Expected a complex table block.')
+    }
+
+    const cell = table.cells.find((entry) => entry.columnIndex === 0)
+    if (!cell) {
+      throw new Error('Expected a cell at column 0.')
+    }
+
+    // Two source lines → exactly two paragraphs; the entry must stay inline with
+    // the text on its line instead of being pushed onto a line of its own.
+    expect(cell.blocks).toHaveLength(2)
+
+    const firstParagraph = cell.blocks[0]!
+    if (firstParagraph.blockType !== 'paragraph') {
+      throw new Error('Expected the first cell block to be a paragraph.')
+    }
+    expect(firstParagraph.inlines.map((inline) => inline.inlineType)).toEqual([
+      'text',
+      'text',
+      'entry',
+    ])
+
+    const entryInline = firstParagraph.inlines[2]!
+    if (entryInline.inlineType !== 'entry') {
+      throw new Error('Expected the trailing inline to be an entry.')
+    }
+    expect(entryInline.targetId).toBe('1107')
+    expect(entryInline.entryType).toBe('link-img')
+    expect(entryInline.count).toBe('0')
+
+    const secondParagraph = cell.blocks[1]!
+    if (secondParagraph.blockType !== 'paragraph') {
+      throw new Error('Expected the second cell block to be a paragraph.')
+    }
+    expect(secondParagraph.inlines.map((inline) => inline.inlineType)).toEqual(['text', 'text'])
+
+    // The rendered XML must not break the entry onto its own line either.
+    const renderedXml = wikiJsonToXml(xmlToWikiJson(sourceXml).text).text
+    expect(renderedXml).toContain('完成主线任务<entry')
+  })
+
   test('rejects wiki JSON without the public item shape', () => {
     expect(() => parseWikiJson({ itemId: '1' })).toThrow(XmlWikiConversionError)
   })
