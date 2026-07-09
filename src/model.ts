@@ -83,6 +83,12 @@ export interface HorizontalLineBlock {
   kind: string
 }
 
+export interface ExternalVideoBlock {
+  blockType: 'externalVideo'
+  videoKind: string
+  videoId: string
+}
+
 export interface ComplexTableCell {
   rowIndex: number
   columnIndex: number
@@ -107,6 +113,7 @@ export type Block =
   | ImageBlock
   | HorizontalLineBlock
   | ComplexTableBlock
+  | ExternalVideoBlock
 
 export interface ImageIntro {
   name: string
@@ -185,6 +192,10 @@ export function isImage(block: Block): block is ImageBlock {
 
 export function isComplexTable(block: Block): block is ComplexTableBlock {
   return block.blockType === 'complexTable'
+}
+
+export function isExternalVideo(block: Block): block is ExternalVideoBlock {
+  return block.blockType === 'externalVideo'
 }
 
 export function isTextRun(inline: Inline): inline is TextRunInline {

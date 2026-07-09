@@ -509,3 +509,160 @@ describe('@eihrteam/xml conversion', () => {
     ).toThrow(/entry 1 failed/)
   })
 })
+
+describe('external video (<video>) blocks', () => {
+  const videoInfoItem = {
+    itemId: '1272',
+    brief: {
+      name: '这里是标题',
+      cover: 'https://example.com/cover.png',
+      subTypeList: [],
+      description: null,
+    },
+    document: {
+      chapterGroup: [
+        { title: '文字样式', widgets: [{ id: 'AaTliwoz', title: 'Bilibili', size: 'large' }] },
+      ],
+      extraInfo: { illustration: '' },
+      widgetCommonMap: {
+        AaTliwoz: { type: 'common', tabList: [], tabDataMap: { default: { content: 'zEZKFx3E' } } },
+      },
+      documentMap: {
+        zEZKFx3E: {
+          id: 'document-id',
+          version: '1.0.0',
+          blockIds: ['5952620', 'BV1c49DBjEzq'],
+          blockMap: {
+            '5952620': {
+              kind: 'externalVideo',
+              id: '5952620',
+              parentId: 'document-id',
+              externalVideo: {
+                id: '5952620',
+                kind: 'skland',
+                elementId: 'mkstEJC1oI2I',
+                type: 'external-video',
+                children: [{ text: '' }],
+              },
+            },
+            BV1c49DBjEzq: {
+              kind: 'externalVideo',
+              id: 'BV1c49DBjEzq',
+              parentId: 'document-id',
+              externalVideo: {
+                id: 'BV1c49DBjEzq',
+                kind: 'bilibili',
+                elementId: 'hFGFwvR19Iie',
+                type: 'external-video',
+                children: [{ text: '' }],
+              },
+            },
+          },
+        },
+      },
+    },
+  }
+
+  const videoXml = `<?xml version="1.0" encoding="UTF-8"?>
+<sklandDocument>
+    <itemId>1272</itemId>
+    <metainfo>
+        <name>这里是标题</name>
+        <cover showInDetail="true">https://example.com/cover.png</cover>
+        <subTypes></subTypes>
+    </metainfo>
+    <description></description>
+    <chapters name="文字样式">
+        <chapter name="Bilibili" size="large">
+            <video kind="skland" id="5952620"></video>
+            <video kind="bilibili" id="BV1c49DBjEzq"></video>
+        </chapter>
+    </chapters>
+</sklandDocument>`
+
+  function chapterDocument(renderedItemText: string) {
+    const rendered = JSON.parse(renderedItemText) as any
+    const widgetId = Object.keys(rendered.document.widgetCommonMap)[0]!
+    const documentId = rendered.document.widgetCommonMap[widgetId].tabDataMap.default.content
+    return rendered.document.documentMap[documentId]
+  }
+
+  test('renders skland and bilibili videos as <video> tags', () => {
+    const xml = wikiJsonToXml(videoInfoItem).text
+    expect(xml).toContain('<video kind="skland" id="5952620"></video>')
+    expect(xml).toContain('<video kind="bilibili" id="BV1c49DBjEzq"></video>')
+  })
+
+  test('parses <video> into externalVideo blocks', () => {
+    const document = parseXml(videoXml)
+    const videos = collectBlocks(document).flatMap((block) =>
+      block.blockType === 'externalVideo' ? [{ kind: block.videoKind, id: block.videoId }] : []
+    )
+    expect(videos).toEqual([
+      { kind: 'skland', id: '5952620' },
+      { kind: 'bilibili', id: 'BV1c49DBjEzq' },
+    ])
+  })
+
+  test('renders XML videos back to the external-video JSON shape', () => {
+    const doc = chapterDocument(xmlToWikiJson(videoXml).text)
+    expect(doc.blockIds).toEqual(['5952620', 'BV1c49DBjEzq'])
+
+    const skland = doc.blockMap['5952620']
+    expect(skland.kind).toBe('externalVideo')
+    expect(skland.id).toBe('5952620')
+    expect(skland.parentId).toBe('document-id')
+    expect(skland.externalVideo.id).toBe('5952620')
+    expect(skland.externalVideo.kind).toBe('skland')
+    expect(skland.externalVideo.type).toBe('external-video')
+    expect(skland.externalVideo.children).toEqual([{ text: '' }])
+    expect(typeof skland.externalVideo.elementId).toBe('string')
+    expect(skland.externalVideo.elementId.length).toBeGreaterThan(0)
+
+    const bilibili = doc.blockMap['BV1c49DBjEzq']
+    expect(bilibili.externalVideo.kind).toBe('bilibili')
+    expect(bilibili.externalVideo.id).toBe('BV1c49DBjEzq')
+  })
+
+  test('round-trips videos through XML → JSON → XML', () => {
+    const json = xmlToWikiJson(videoXml).text
+    const xml = wikiJsonToXml(json).text
+    expect(xml).toContain('<video kind="skland" id="5952620"></video>')
+    expect(xml).toContain('<video kind="bilibili" id="BV1c49DBjEzq"></video>')
+
+    const videos = collectBlocks(parseXml(xml)).flatMap((block) =>
+      block.blockType === 'externalVideo' ? [{ kind: block.videoKind, id: block.videoId }] : []
+    )
+    expect(videos).toEqual([
+      { kind: 'skland', id: '5952620' },
+      { kind: 'bilibili', id: 'BV1c49DBjEzq' },
+    ])
+  })
+
+  test('round-trips videos through JSON → XML → JSON', () => {
+    const xml = wikiJsonToXml(videoInfoItem).text
+    const doc = chapterDocument(xmlToWikiJson(xml).text)
+    expect(doc.blockMap['5952620'].externalVideo.kind).toBe('skland')
+    expect(doc.blockMap['BV1c49DBjEzq'].externalVideo.kind).toBe('bilibili')
+  })
+
+  test('rejects an unsupported video kind from XML', () => {
+    const xml = videoXml.replace('kind="skland"', 'kind="youtube"')
+    expect(() => parseXml(xml)).toThrow(/Unsupported external video kind/)
+  })
+
+  test('requires kind and id attributes on <video>', () => {
+    expect(() => parseXml(videoXml.replace('kind="skland" ', ''))).toThrow(
+      /must include a kind attribute/
+    )
+    expect(() => parseXml(videoXml.replace(' id="5952620"', ''))).toThrow(
+      /must include an id attribute/
+    )
+  })
+
+  test('rejects an unsupported video kind from wiki JSON', () => {
+    const badItem = structuredClone(videoInfoItem) as any
+    badItem.document.documentMap.zEZKFx3E.blockMap['5952620'].externalVideo.kind = 'youtube'
+    expect(() => wikiJsonToXml(badItem)).toThrow(/Unsupported external video kind/)
+  })
+})

@@ -30,4 +30,8 @@ export class IdFactory {
   audioId() {
     return this.token(6)
   }
+
+  elementId() {
+    return this.token(12)
+  }
 }

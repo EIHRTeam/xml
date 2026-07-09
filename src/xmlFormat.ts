@@ -1,5 +1,5 @@
 import { XML_TO_JSON_COLOR } from './colors'
-import { BASE_BLOCK_TAGS, INLINE_TAGS, TABLE_TOTAL_WIDTH_BY_SIZE } from './constants'
+import { BASE_BLOCK_TAGS, INLINE_TAGS, TABLE_TOTAL_WIDTH_BY_SIZE, VIDEO_KINDS } from './constants'
 import { hasMeta, normalizeMetaRecord, type XmlPublicMeta } from './publicMeta'
 import { CDATA_SECTION_NODE, ELEMENT_NODE, TEXT_NODE, parseXmlDocument } from './xmlDom'
 import {
@@ -26,6 +26,7 @@ import {
   TableRow,
   TextRunInline,
   isComplexTable,
+  isExternalVideo,
   isImage,
   isHeaderPosition,
   isRecord,
@@ -572,6 +573,25 @@ function parseBlockElement(
     return {
       blockType: 'horizontalLine',
       kind: element.getAttribute('kind') || '',
+    }
+  }
+
+  if (element.tagName === 'video') {
+    const videoKind = element.getAttribute('kind')
+    if (!videoKind) {
+      throw new EndfieldWikitextConversionError('<video> must include a kind attribute.')
+    }
+    if (!VIDEO_KINDS.has(videoKind)) {
+      throw new EndfieldWikitextConversionError(`Unsupported external video kind '${videoKind}'.`)
+    }
+    const videoId = element.getAttribute('id')
+    if (!videoId) {
+      throw new EndfieldWikitextConversionError('<video> must include an id attribute.')
+    }
+    return {
+      blockType: 'externalVideo',
+      videoKind,
+      videoId,
     }
   }
 
@@ -1191,6 +1211,10 @@ function renderBlock(block: Block, indent: number): string[] {
 
   if (block.blockType === 'horizontalLine') {
     return [`${pad}<line kind=${quoteAttr(block.kind)}></line>`]
+  }
+
+  if (isExternalVideo(block)) {
+    return [`${pad}<video kind=${quoteAttr(block.videoKind)} id=${quoteAttr(block.videoId)}></video>`]
   }
 
   if (isComplexTable(block)) {

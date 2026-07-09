@@ -36,7 +36,8 @@ const XML_TO_JSON_COLOR = Object.fromEntries(
 ) as Record<string, string>
 
 export const INLINE_TAGS = new Set(['b', 'i', 'u', 's', 'color', 'pron', 'a', 'entry'])
-export const BASE_BLOCK_TAGS = new Set(['h1', 'h2', 'h3', 'quote', 'ul', 'ol', 'align', 'img', 'line'])
+export const BASE_BLOCK_TAGS = new Set(['h1', 'h2', 'h3', 'quote', 'ul', 'ol', 'align', 'img', 'line', 'video'])
+export const VIDEO_KINDS = new Set(['skland', 'bilibili'])
 export const TABLE_TOTAL_WIDTH_BY_SIZE: Record<string, number> = {
   large: 1160,
   middle: 754.7,

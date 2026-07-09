@@ -17,6 +17,7 @@ export type {
   ComplexTableCell,
   DocumentModel,
   EntryRefInline,
+  ExternalVideoBlock,
   HorizontalLineBlock,
   ImageBlock,
   ImageIntro,

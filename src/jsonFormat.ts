@@ -1,5 +1,5 @@
 import { DEFAULT_JSON_TEXT_COLOR, JSON_TO_XML_COLOR, XML_TO_JSON_COLOR } from './colors'
-import { JSON_ENTRY_TO_XML, SCALE_COLOR_SET, XML_ENTRY_TO_JSON } from './constants'
+import { JSON_ENTRY_TO_XML, SCALE_COLOR_SET, VIDEO_KINDS, XML_ENTRY_TO_JSON } from './constants'
 import { IdFactory } from './ids'
 import { cloneRecord, normalizeMetaRecord, omitKeys } from './publicMeta'
 import {
@@ -27,6 +27,7 @@ import {
   TextRunInline,
   blocksToPlainText,
   isComplexTable,
+  isExternalVideo,
   isImage,
   isList,
   isParagraph,
@@ -595,6 +596,19 @@ function blockFromJson(
     }
   }
 
+  if (kind === 'externalVideo') {
+    const videoPayload = requireMapping(block, `block[${blockId}].externalVideo`, 'externalVideo')
+    const videoKind = requireString(videoPayload, `block[${blockId}].externalVideo.kind`, 'kind')
+    if (!VIDEO_KINDS.has(videoKind)) {
+      throw new EndfieldWikitextConversionError(`Unsupported external video kind '${videoKind}'.`)
+    }
+    return {
+      blockType: 'externalVideo',
+      videoKind,
+      videoId: requireString(videoPayload, `block[${blockId}].externalVideo.id`, 'id'),
+    }
+  }
+
   if (kind === 'table') {
     if (!options.allowTables) {
       throw new EndfieldWikitextConversionError('Nested tables are not supported inside table cells.')
@@ -890,6 +904,23 @@ function appendBlock(
   parentId: string,
   factory: IdFactory
 ): string {
+  if (isExternalVideo(block)) {
+    const blockId = block.videoId
+    blockMap[blockId] = {
+      kind: 'externalVideo',
+      id: blockId,
+      parentId,
+      externalVideo: {
+        id: blockId,
+        kind: block.videoKind,
+        elementId: factory.elementId(),
+        type: 'external-video',
+        children: [{ text: '' }],
+      },
+    }
+    return blockId
+  }
+
   const blockId = factory.blockId()
 
   if (isParagraph(block)) {
