@@ -119,7 +119,7 @@ export interface ImageIntro {
   name: string
   introType: string
   imageUrl: string
-  description: string
+  description: Inline[]
 }
 
 export interface Tab {

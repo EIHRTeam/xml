@@ -330,7 +330,7 @@ function tabFromXml(tab: Element, chapterSize: string): Tab {
           name: normalizedText(directTextContent(requireChild(child, 'name'))),
           introType: normalizedText(directTextContent(requireChild(child, 'type'))),
           imageUrl: normalizedText(directTextContent(requireChild(child, 'imgUrl'))),
-          description: normalizedText(directTextContent(requireChild(child, 'description'))),
+          description: parseInlineContainer(requireChild(child, 'description')),
         }
       },
     },
@@ -948,13 +948,22 @@ function appendInlineText(
     return
   }
 
-  const normalized = text.replace(/\s+/g, ' ').trim()
-  if (!normalized) {
+  // Preserve newlines (they are significant in imgIntro descriptions),
+  // but collapse all other whitespace runs to a single space.
+  // Note: we do NOT trim newlines — only spaces/tabs — so that a leading
+  // "\n获取方式：..." keeps its line break.
+  const collapsed = text
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/[^\S\n]+/g, ' ')
+    .replace(/^[^\S\n]+/, '')
+    .replace(/[^\S\n]+$/, '')
+  if (!collapsed) {
     return
   }
 
   inlines.push(
-    textRun(normalized, {
+    textRun(collapsed, {
       bold: state.bold,
       italic: state.italic,
       underline: state.underline,
@@ -1077,7 +1086,7 @@ function renderImageIntro(intro: ImageIntro, indent: number) {
     `${pad}    <name>${escapeXmlText(intro.name)}</name>`,
     `${pad}    <type>${escapeXmlText(intro.introType)}</type>`,
     `${pad}    <imgUrl>${escapeXmlText(intro.imageUrl)}</imgUrl>`,
-    `${pad}    <description>${escapeXmlText(intro.description)}</description>`,
+    `${pad}    <description>${renderInlines(intro.description)}</description>`,
     `${pad}</imgIntro>`,
   ]
 }
