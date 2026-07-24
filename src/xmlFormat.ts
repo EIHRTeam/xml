@@ -330,7 +330,7 @@ function tabFromXml(tab: Element, chapterSize: string): Tab {
           name: normalizedText(directTextContent(requireChild(child, 'name'))),
           introType: normalizedText(directTextContent(requireChild(child, 'type'))),
           imageUrl: normalizedText(directTextContent(requireChild(child, 'imgUrl'))),
-          description: parseInlineContainer(requireChild(child, 'description')),
+          description: parseInlineContainer(requireChild(child, 'description'), { preserveNewlines: true }),
         }
       },
     },
@@ -807,6 +807,10 @@ function parseInlineContainer(
     underline?: boolean
     strike?: boolean
     color?: string | null
+    /** When true, `\n` in text nodes is preserved rather than collapsed to a
+     *  space. Only enabled for imgIntro descriptions; all other call sites
+     *  treat `\n` as regular whitespace. */
+    preserveNewlines?: boolean
   }
 ): Inline[] {
   const bold = state?.bold ?? false
@@ -814,6 +818,7 @@ function parseInlineContainer(
   const underline = state?.underline ?? false
   const strike = state?.strike ?? false
   const color = state?.color ?? null
+  const preserveNewlines = state?.preserveNewlines ?? false
 
   const inlines: Inline[] = []
 
@@ -825,6 +830,7 @@ function parseInlineContainer(
         underline,
         strike,
         color,
+        preserveNewlines,
       })
       continue
     }
@@ -840,6 +846,7 @@ function parseInlineContainer(
         underline,
         strike,
         color,
+        preserveNewlines,
       })
     )
   }
@@ -855,6 +862,7 @@ function parseInlineElement(
     underline?: boolean
     strike?: boolean
     color?: string | null
+    preserveNewlines?: boolean
   }
 ): Inline[] {
   const bold = state?.bold ?? false
@@ -862,21 +870,22 @@ function parseInlineElement(
   const underline = state?.underline ?? false
   const strike = state?.strike ?? false
   const color = state?.color ?? null
+  const preserveNewlines = state?.preserveNewlines ?? false
 
   if (element.tagName === 'b') {
-    return parseInlineContainer(element, { bold: true, italic, underline, strike, color })
+    return parseInlineContainer(element, { bold: true, italic, underline, strike, color, preserveNewlines })
   }
 
   if (element.tagName === 'i') {
-    return parseInlineContainer(element, { bold, italic: true, underline, strike, color })
+    return parseInlineContainer(element, { bold, italic: true, underline, strike, color, preserveNewlines })
   }
 
   if (element.tagName === 'u') {
-    return parseInlineContainer(element, { bold, italic, underline: true, strike, color })
+    return parseInlineContainer(element, { bold, italic, underline: true, strike, color, preserveNewlines })
   }
 
   if (element.tagName === 's') {
-    return parseInlineContainer(element, { bold, italic, underline, strike: true, color })
+    return parseInlineContainer(element, { bold, italic, underline, strike: true, color, preserveNewlines })
   }
 
   if (element.tagName === 'color') {
@@ -893,6 +902,7 @@ function parseInlineElement(
       underline,
       strike,
       color: colorValue,
+      preserveNewlines,
     })
   }
 
@@ -942,22 +952,31 @@ function appendInlineText(
     underline: boolean
     strike: boolean
     color: string | null
+    preserveNewlines?: boolean
   }
 ) {
   if (!text) {
     return
   }
 
-  // Preserve newlines (they are significant in imgIntro descriptions),
-  // but collapse all other whitespace runs to a single space.
-  // Note: we do NOT trim newlines — only spaces/tabs — so that a leading
-  // "\n获取方式：..." keeps its line break.
-  const collapsed = text
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .replace(/[^\S\n]+/g, ' ')
-    .replace(/^[^\S\n]+/, '')
-    .replace(/[^\S\n]+$/, '')
+  let collapsed: string
+  if (state.preserveNewlines) {
+    // imgIntro description path: preserve newlines (they separate logical
+    // lines), but collapse all other whitespace runs to a single space.
+    // We do NOT trim newlines — only spaces/tabs — so that a leading
+    // "\n获取方式：..." keeps its line break.
+    collapsed = text
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .replace(/[^\S\n]+/g, ' ')
+      .replace(/^[^\S\n]+/, '')
+      .replace(/[^\S\n]+$/, '')
+  } else {
+    // Default path (headings, align blocks, inline formatting tags):
+    // collapse all whitespace including newlines into a single space.
+    collapsed = text.replace(/\s+/g, ' ').trim()
+  }
+
   if (!collapsed) {
     return
   }

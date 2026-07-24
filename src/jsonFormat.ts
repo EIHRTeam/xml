@@ -25,6 +25,7 @@ import {
   Tab,
   TableRow,
   TextRunInline,
+  blocksToInlines,
   blocksToPlainText,
   isComplexTable,
   isExternalVideo,
@@ -437,7 +438,7 @@ function chapterFromJson(
         }
         if (descriptionId) {
           const descriptionDoc = ensureMapping(documentMap[descriptionId], `documentMap[${descriptionId}]`)
-          intro.description = [textRun(blocksToPlainText(blocksFromDocument(descriptionDoc)))]
+          intro.description = blocksToInlines(blocksFromDocument(descriptionDoc))
         }
       }
 
@@ -1098,7 +1099,8 @@ function splitInlinesByNewline(inlines: Inline[]): Inline[][] {
       continue
     }
 
-    const parts = inline.text.split('\n')
+    const normalized = inline.text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+    const parts = normalized.split('\n')
     for (let i = 0; i < parts.length; i++) {
       if (i > 0) {
         lines.push([])

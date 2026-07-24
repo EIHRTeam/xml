@@ -389,6 +389,29 @@ export function blocksToPlainText(blocks: Block[]) {
   return lines.join('\n')
 }
 
+/**
+ * Extract a flat Inline[] from paragraph blocks, inserting `\n` text runs
+ * between paragraphs. This preserves inline formatting (bold, italic, color,
+ * etc.) that {@link blocksToPlainText} discards. Used when importing imgIntro
+ * descriptions from JSON, where each line is stored as a separate paragraph
+ * block.
+ */
+export function blocksToInlines(blocks: Block[]): Inline[] {
+  const inlines: Inline[] = []
+  for (const block of normalizeBlocks(blocks)) {
+    if (isParagraph(block)) {
+      inlines.push(...block.inlines)
+      inlines.push(textRun('\n'))
+    }
+  }
+  // Drop trailing `\n` separator added after the last paragraph.
+  const last = inlines[inlines.length - 1]
+  if (last && isTextRun(last) && last.text === '\n') {
+    inlines.pop()
+  }
+  return mergeAdjacentTextRuns(inlines)
+}
+
 export function inlinesToPlainText(inlines: Inline[]) {
   const parts: string[] = []
   for (const inline of inlines) {
