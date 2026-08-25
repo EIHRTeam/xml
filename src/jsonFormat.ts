@@ -1,8 +1,13 @@
-import { DEFAULT_JSON_TEXT_COLOR, JSON_TO_XML_COLOR, XML_TO_JSON_COLOR } from './colors'
-import { JSON_ENTRY_TO_XML, SCALE_COLOR_SET, VIDEO_KINDS, XML_ENTRY_TO_JSON } from './constants'
-import { IdFactory } from './ids'
-import { cloneRecord, normalizeMetaRecord, omitKeys } from './publicMeta'
+import { DEFAULT_JSON_TEXT_COLOR, JSON_TO_XML_COLOR, XML_TO_JSON_COLOR } from './colors.js'
 import {
+  JSON_ENTRY_TO_XML,
+  SCALE_COLOR_SET,
+  VIDEO_KINDS,
+  XML_ENTRY_TO_JSON,
+} from './constants.js'
+import { IdFactory } from './ids.js'
+import { cloneRecord, normalizeMetaRecord, omitKeys } from './publicMeta.js'
+import type {
   AudioItem,
   AudioTab,
   Block,
@@ -11,23 +16,15 @@ import {
   ComplexTableBlock,
   ComplexTableCell,
   DocumentModel,
-  EndfieldWikitextConversionError,
-  HorizontalLineBlock,
-  ImageBlock,
   ImageIntro,
   Inline,
-  LinkInline,
-  ListBlock,
   ListItem,
-  ParagraphBlock,
-  PronunciationInline,
-  QuoteBlock,
-  SubType,
   Tab,
   TableRow,
-  TextRunInline,
+} from './model.js'
+import {
+  EndfieldWikitextConversionError,
   blocksToInlines,
-  blocksToPlainText,
   isComplexTable,
   isExternalVideo,
   isImage,
@@ -40,7 +37,7 @@ import {
   paragraph,
   textRun,
   validateComplexTableBlock,
-} from './model'
+} from './model.js'
 
 export interface RenderWikiJsonOptions {
   wrapInfoRoot?: boolean
@@ -343,7 +340,7 @@ function buildWikiJsonObject(
 export function documentToWikiJsonObject(
   document: DocumentModel,
   options: RenderWikiJsonOptions = {}
-) {
+): Record<string, unknown> {
   return buildWikiJsonObject(document, options, 'wiki')
 }
 
@@ -753,7 +750,7 @@ function inlinesFromJson(inlineElements: unknown[]): Inline[] {
       if (colorName && colorName !== DEFAULT_JSON_TEXT_COLOR) {
         xmlColor = JSON_TO_XML_COLOR[colorName]!
       } else if (colorName === DEFAULT_JSON_TEXT_COLOR && hasExplicitScaleColors) {
-        xmlColor = JSON_TO_XML_COLOR[colorName]
+        xmlColor = JSON_TO_XML_COLOR[colorName]!
       }
 
       const textPayload = requireMapping(entry, 'inline.text', 'text')

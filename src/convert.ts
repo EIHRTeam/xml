@@ -1,12 +1,12 @@
-import type { DocumentModel } from './model'
+import type { DocumentModel } from './model.js'
 import {
   documentFromJsonText,
   documentToJsonText,
   parseSubmitJson,
   renderSubmitJson,
   type RenderWikiJsonOptions,
-} from './jsonFormat'
-import { documentFromXmlText, documentToXmlText } from './xmlFormat'
+} from './jsonFormat.js'
+import { documentFromXmlText, documentToXmlText } from './xmlFormat.js'
 import type {
   ConversionBatchEntry,
   ConversionBatchResult,
@@ -14,7 +14,7 @@ import type {
   WikiJsonToXmlBatchEntry,
   WikiJsonToXmlBatchResult,
   XmlWikiFormat,
-} from './types'
+} from './types.js'
 
 export interface ConvertOptions extends RenderWikiJsonOptions {
   from: XmlWikiFormat

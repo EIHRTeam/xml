@@ -58,6 +58,7 @@ jobs:
 
           VERSION="${INPUT_VERSION#v}"
           TAG="v${VERSION}"
+          NPM_DIST_TAG=latest
           PACKAGE_NAME="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).name")"
           PACKAGE_VERSION="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
 
@@ -69,6 +70,16 @@ jobs:
           if [ "${PACKAGE_VERSION}" != "${VERSION}" ]; then
             echo "package.json version ${PACKAGE_VERSION} does not match requested version ${VERSION}."
             exit 1
+          fi
+
+          if [[ "${VERSION}" == *-* ]]; then
+            PRERELEASE="${VERSION#*-}"
+            PRERELEASE_CHANNEL="${PRERELEASE%%.*}"
+            if [[ "${PRERELEASE_CHANNEL}" =~ ^[A-Za-z][0-9A-Za-z-]*$ ]]; then
+              NPM_DIST_TAG="$(printf '%s' "${PRERELEASE_CHANNEL}" | tr '[:upper:]' '[:lower:]')"
+            else
+              NPM_DIST_TAG=next
+            fi
           fi
 
           HEAD_SHA="$(git rev-parse HEAD)"
@@ -99,6 +110,7 @@ jobs:
           {
             echo "VERSION=${VERSION}"
             echo "TAG=${TAG}"
+            echo "NPM_DIST_TAG=${NPM_DIST_TAG}"
             echo "PACKAGE_NAME=${PACKAGE_NAME}"
             echo "TAG_EXISTS=${TAG_EXISTS}"
             echo "RELEASE_EXISTS=${RELEASE_EXISTS}"
@@ -166,7 +178,7 @@ jobs:
             exit 0
           fi
 
-          npm publish --access public --provenance
+          npm publish --access public --provenance --tag "${NPM_DIST_TAG}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -192,6 +204,6 @@ jobs:
           trap 'node -e "const fs=require(\"node:fs\");const p=JSON.parse(fs.readFileSync(\"package.json\",\"utf8\"));p.name=process.env.ORIGINAL_NAME;fs.writeFileSync(\"package.json\",JSON.stringify(p,null,2)+\"\\n\")"' EXIT
           node -e "const fs=require('node:fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.name=process.env.GITHUB_PACKAGE_NAME;fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
           npm pkg fix
-          npm publish --registry=https://npm.pkg.github.com/ --ignore-scripts
+          npm publish --registry=https://npm.pkg.github.com/ --ignore-scripts --tag "${NPM_DIST_TAG}"
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}

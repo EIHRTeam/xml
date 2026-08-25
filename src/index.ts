@@ -7,7 +7,7 @@ export type {
   WikiJsonToXmlBatchItem,
   WikiJsonToXmlBatchResult,
   XmlWikiFormat,
-} from './types'
+} from './types.js'
 export type {
   AudioItem,
   AudioTab,
@@ -33,8 +33,8 @@ export type {
   Tab,
   TableRow,
   TextRunInline,
-} from './model'
-export { XmlWikiConversionError } from './model'
+} from './model.js'
+export { XmlWikiConversionError } from './model.js'
 export {
   convert,
   submitJsonToWikiJson,
@@ -46,7 +46,7 @@ export {
   xmlToWikiJson,
   xmlToWikiJsonBatch,
   type ConvertOptions,
-} from './convert'
+} from './convert.js'
 export {
   documentFromJsonText as parseWikiJsonWithWarnings,
   documentToJsonText as renderWikiJson,
@@ -54,18 +54,22 @@ export {
   parseSubmitJson,
   renderSubmitJson,
   type RenderWikiJsonOptions,
-} from './jsonFormat'
-export { documentFromXmlText as parseXmlWithWarnings, documentToXmlText as renderXml } from './xmlFormat'
+} from './jsonFormat.js'
+export {
+  documentFromXmlText as parseXmlWithWarnings,
+  documentToXmlText as renderXml,
+} from './xmlFormat.js'
 
 export { parseWikiJson, parseXml }
 
-import { documentFromJsonText } from './jsonFormat'
-import { documentFromXmlText } from './xmlFormat'
+import type { DocumentModel } from './model.js'
+import { documentFromJsonText } from './jsonFormat.js'
+import { documentFromXmlText } from './xmlFormat.js'
 
-function parseWikiJson(source: string | object) {
+function parseWikiJson(source: string | object): DocumentModel {
   return documentFromJsonText(source)[0]
 }
 
-function parseXml(source: string) {
+function parseXml(source: string): DocumentModel {
   return documentFromXmlText(source)[0]
 }

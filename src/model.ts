@@ -8,7 +8,7 @@ export class XmlWikiConversionError extends Error {
 const EndfieldWikitextConversionError = XmlWikiConversionError
 export { XmlWikiConversionError as EndfieldWikitextConversionError }
 
-export const HEADER_MODES = new Set(['none', 'row', 'col', 'both'])
+export const HEADER_MODES: ReadonlySet<string> = new Set(['none', 'row', 'col', 'both'])
 
 export interface SubType {
   subTypeId: string
@@ -230,7 +230,11 @@ export function paragraph(inlines: Inline[] = [], kind = 'body', align = 'left')
   }
 }
 
-export function isHeaderPosition(headerMode: string, rowIndex: number, columnIndex: number) {
+export function isHeaderPosition(
+  headerMode: string,
+  rowIndex: number,
+  columnIndex: number,
+): boolean {
   if (headerMode === 'none') {
     return false
   }
@@ -246,7 +250,7 @@ export function isHeaderPosition(headerMode: string, rowIndex: number, columnInd
   throw new EndfieldWikitextConversionError(`Unsupported table header mode '${headerMode}'.`)
 }
 
-export function inlineHasContent(inline: Inline) {
+export function inlineHasContent(inline: Inline): boolean {
   if (isTextRun(inline)) {
     return Boolean(inline.text)
   }
@@ -259,7 +263,7 @@ export function inlineHasContent(inline: Inline) {
   return Boolean(inline.targetId)
 }
 
-export function isEmptyParagraph(block: Block) {
+export function isEmptyParagraph(block: Block): boolean {
   return (
     isParagraph(block) &&
     block.kind === 'body' &&
@@ -267,7 +271,7 @@ export function isEmptyParagraph(block: Block) {
   )
 }
 
-export function mergeAdjacentTextRuns(inlines: Inline[]) {
+export function mergeAdjacentTextRuns(inlines: Inline[]): Inline[] {
   const merged: Inline[] = []
   for (const inline of inlines) {
     const last = merged[merged.length - 1]
@@ -386,7 +390,7 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
   return collapsed
 }
 
-export function blocksToPlainText(blocks: Block[]) {
+export function blocksToPlainText(blocks: Block[]): string {
   const lines: string[] = []
   for (const block of normalizeBlocks(blocks)) {
     if (isParagraph(block)) {
@@ -419,7 +423,7 @@ export function blocksToInlines(blocks: Block[]): Inline[] {
   return mergeAdjacentTextRuns(inlines)
 }
 
-export function inlinesToPlainText(inlines: Inline[]) {
+export function inlinesToPlainText(inlines: Inline[]): string {
   const parts: string[] = []
   for (const inline of inlines) {
     if (isTextRun(inline)) {
@@ -462,7 +466,7 @@ export function* iterImageBlocks(blocks: Block[]): Generator<ImageBlock> {
   }
 }
 
-export function validateComplexTableBlock(block: ComplexTableBlock) {
+export function validateComplexTableBlock(block: ComplexTableBlock): void {
   if (!HEADER_MODES.has(block.headerMode)) {
     throw new EndfieldWikitextConversionError(`Unsupported table header mode '${block.headerMode}'.`)
   }

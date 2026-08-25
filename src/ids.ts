@@ -11,27 +11,27 @@ export class IdFactory {
     return value
   }
 
-  widgetId() {
+  widgetId(): string {
     return this.token(8)
   }
 
-  blockId() {
+  blockId(): string {
     return this.token(12)
   }
 
-  itemId() {
+  itemId(): string {
     return this.token(12)
   }
 
-  tabId() {
+  tabId(): string {
     return `tab_${this.token(12)}`
   }
 
-  audioId() {
+  audioId(): string {
     return this.token(6)
   }
 
-  elementId() {
+  elementId(): string {
     return this.token(12)
   }
 }

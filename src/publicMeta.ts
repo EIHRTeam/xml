@@ -1,4 +1,4 @@
-import { isRecord } from './model'
+import { isRecord } from './model.js'
 
 export interface XmlPublicMeta {
   infoRoot?: Record<string, unknown>
@@ -32,6 +32,6 @@ export function normalizeMetaRecord(value: unknown): Record<string, unknown> {
   return isRecord(value) ? cloneRecord(value) : {}
 }
 
-export function hasMeta(value: Record<string, unknown>) {
+export function hasMeta(value: Record<string, unknown>): boolean {
   return Object.keys(value).length > 0
 }

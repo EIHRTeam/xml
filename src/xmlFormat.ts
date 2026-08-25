@@ -1,8 +1,13 @@
-import { XML_TO_JSON_COLOR } from './colors'
-import { BASE_BLOCK_TAGS, INLINE_TAGS, TABLE_TOTAL_WIDTH_BY_SIZE, VIDEO_KINDS } from './constants'
-import { hasMeta, normalizeMetaRecord, type XmlPublicMeta } from './publicMeta'
-import { CDATA_SECTION_NODE, ELEMENT_NODE, TEXT_NODE, parseXmlDocument } from './xmlDom'
+import { XML_TO_JSON_COLOR } from './colors.js'
 import {
+  BASE_BLOCK_TAGS,
+  INLINE_TAGS,
+  TABLE_TOTAL_WIDTH_BY_SIZE,
+  VIDEO_KINDS,
+} from './constants.js'
+import { hasMeta, normalizeMetaRecord, type XmlPublicMeta } from './publicMeta.js'
+import { CDATA_SECTION_NODE, ELEMENT_NODE, TEXT_NODE, parseXmlDocument } from './xmlDom.js'
+import type {
   AudioItem,
   AudioTab,
   Block,
@@ -11,21 +16,17 @@ import {
   ComplexTableBlock,
   ComplexTableCell,
   DocumentModel,
-  EndfieldWikitextConversionError,
-  EntryRefInline,
-  HEADER_MODES,
-  ImageBlock,
   ImageIntro,
   Inline,
-  LinkInline,
   ListBlock,
   ListItem,
-  PronunciationInline,
-  QuoteBlock,
   SubType,
   Tab,
   TableRow,
-  TextRunInline,
+} from './model.js'
+import {
+  EndfieldWikitextConversionError,
+  HEADER_MODES,
   isComplexTable,
   isExternalVideo,
   isImage,
@@ -40,7 +41,7 @@ import {
   paragraph,
   textRun,
   validateComplexTableBlock,
-} from './model'
+} from './model.js'
 
 function parseXmlRoot(source: string): Element {
   let xml: Document
@@ -389,7 +390,7 @@ function parseMixedBlocks(
   container: Element,
   options?: {
     specialHandlers?: Record<string, (element: Element) => void>
-    chapterSize?: string
+    chapterSize?: string | undefined
     allowTables?: boolean
   }
 ): Block[] {
@@ -527,7 +528,7 @@ function parseMixedBlocks(
 function parseBlockElement(
   element: Element,
   options: {
-    chapterSize?: string
+    chapterSize?: string | undefined
     allowTables: boolean
   }
 ): Block {
@@ -775,7 +776,7 @@ function parseListElement(
   element: Element,
   options: {
     ordered: boolean
-    chapterSize?: string
+    chapterSize?: string | undefined
     allowTables: boolean
   }
 ): ListBlock {

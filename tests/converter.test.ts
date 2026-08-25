@@ -20,7 +20,7 @@ import {
   XmlWikiConversionError,
   type Block,
   type DocumentModel,
-} from '../src'
+} from '../src/index.js'
 
 const fixturePath = resolve(import.meta.dirname, 'fixtures/item-info.response.sample.json')
 const sampleXmlPath = resolve(import.meta.dirname, 'fixtures/sample.xml')
@@ -573,9 +573,9 @@ describe('@eihrteam/xml conversion', () => {
         { title: '英语：Test Actor', icon: 'https://example.invalid/en.png' },
       ])
     const submitAudioLists = submitAudio.tabList.map(
-      ({ tabId }: Record<string, string>) => submitAudio.tabDataMap[tabId].audioList
+      ({ tabId }: { tabId: string }) => submitAudio.tabDataMap[tabId].audioList
     ) as Array<Array<Record<string, string>>>
-    expect(submitAudioLists.flat().every((audio) => /^[A-Za-z0-9]{6}$/.test(audio.id))).toBe(true)
+    expect(submitAudioLists.flat().every((audio) => /^[A-Za-z0-9]{6}$/.test(audio.id!))).toBe(true)
     expect(submitAudioLists.map((list) => list.map(({ id: _id, ...audio }) => audio))).toEqual(
       chapter.audioTabs!.map((tab) => tab.audios)
     )
@@ -583,7 +583,7 @@ describe('@eihrteam/xml conversion', () => {
     const renderedWiki = JSON.parse(xmlToWikiJson(submitXml).text) as Record<string, any>
     const wikiAudio = audioWidgetsFromItem(renderedWiki)[0]!
     const wikiAudioLists = wikiAudio.tabList.map(
-      ({ tabId }: Record<string, string>) => wikiAudio.tabDataMap[tabId].audioList
+      ({ tabId }: { tabId: string }) => wikiAudio.tabDataMap[tabId].audioList
     ) as Array<Array<Record<string, string>>>
     expect(wikiAudioLists.flat().every((audio) => !Object.hasOwn(audio, 'id'))).toBe(true)
     expect(wikiAudioLists).toEqual(chapter.audioTabs!.map((tab) => tab.audios))
@@ -593,7 +593,7 @@ describe('@eihrteam/xml conversion', () => {
     const renderedSubmit = JSON.parse(xmlToSubmitJson(sampleXmlText).text) as Record<string, any>
     const submitAudioList = audioWidgetsFromItem(renderedSubmit.item)[0]!.tabDataMap.default.audioList
     expect(submitAudioList.every((audio: Record<string, string>) =>
-      /^[A-Za-z0-9]{6}$/.test(audio.id)
+      /^[A-Za-z0-9]{6}$/.test(audio.id!)
     )).toBe(true)
 
     const renderedWiki = JSON.parse(xmlToWikiJson(sampleXmlText).text) as Record<string, any>
