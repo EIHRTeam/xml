@@ -10,6 +10,7 @@ export type {
 } from './types'
 export type {
   AudioItem,
+  AudioTab,
   Block,
   Chapter,
   ChapterGroup,

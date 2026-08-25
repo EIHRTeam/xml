@@ -8,6 +8,7 @@ import {
   parseWikiJson,
   parseXml,
   renderSubmitJson,
+  renderXml,
   submitJsonToWikiJson,
   submitJsonToXml,
   wikiJsonToSubmitJson,
@@ -27,6 +28,93 @@ const infoRootText = readFileSync(fixturePath, 'utf8')
 const sampleXmlText = readFileSync(sampleXmlPath, 'utf8')
 const infoRoot = JSON.parse(infoRootText) as Record<string, unknown>
 const infoItem = (infoRoot.data as { item: Record<string, unknown> }).item
+
+function tabbedAudioItem() {
+  const item = structuredClone(infoItem) as Record<string, any>
+  item.document = {
+    chapterGroup: [
+      {
+        title: '语音记录',
+        widgets: [{ id: 'wTabbedAudio', title: '干员语音', size: 'large' }],
+      },
+    ],
+    extraInfo: { illustration: '' },
+    widgetCommonMap: {
+      wTabbedAudio: {
+        type: 'audio',
+        tableList: [],
+        tabList: [
+          { tabId: 'voiceZh', title: '中文：测试声优', icon: '' },
+          { tabId: 'voiceEn', title: '英语：Test Actor', icon: 'https://example.invalid/en.png' },
+        ],
+        tabDataMap: {
+          voiceZh: {
+            intro: null,
+            content: '',
+            audioList: [
+              {
+                title: '行动准备1',
+                profile: '准备出发。',
+                resourceUrl: 'https://example.invalid/zh-1.wav',
+                id: 'old001',
+              },
+              {
+                title: '行动准备2',
+                profile: '交给我吧。',
+                resourceUrl: 'https://example.invalid/zh-2.wav',
+                id: 'old002',
+              },
+            ],
+          },
+          voiceEn: {
+            intro: null,
+            content: '',
+            audioList: [
+              {
+                title: '行动准备1',
+                profile: 'Ready to depart.',
+                resourceUrl: 'https://example.invalid/en-1.wav',
+                id: 'old003',
+              },
+              {
+                title: '行动准备2',
+                profile: 'Leave it to me.',
+                resourceUrl: 'https://example.invalid/en-2.wav',
+                id: 'old004',
+              },
+            ],
+          },
+        },
+      },
+    },
+    documentMap: {},
+  }
+  return item
+}
+
+function audioChapterXml(content: string) {
+  return `<sklandDocument>
+    <itemId>audio-test</itemId>
+    <metainfo>
+      <name>Audio Test</name>
+      <cover showInDetail="true">https://example.invalid/cover.png</cover>
+      <subTypes></subTypes>
+    </metainfo>
+    <description></description>
+    <chapters name="Audio">
+      ${content}
+    </chapters>
+  </sklandDocument>`
+}
+
+function audioWidgetsFromItem(item: Record<string, any>) {
+  const commonMap = item.document.widgetCommonMap as Record<string, any>
+  return item.document.chapterGroup.flatMap((group: Record<string, any>) =>
+    group.widgets
+      .map((widget: Record<string, any>) => commonMap[widget.id])
+      .filter((common: Record<string, any>) => common.type === 'audio')
+  ) as Array<Record<string, any>>
+}
 
 function collectBlocks(document: DocumentModel) {
   const blocks: Block[] = []
@@ -421,6 +509,132 @@ describe('@eihrteam/xml conversion', () => {
 
   test('rejects wiki JSON without the public item shape', () => {
     expect(() => parseWikiJson({ itemId: '1' })).toThrow(XmlWikiConversionError)
+  })
+
+  test('round-trips tabbed audio through submit and wiki JSON targets', () => {
+    const item = tabbedAudioItem()
+    const submitPayload = { commitMsg: '多语言语音', item }
+    const wikiDocument = parseWikiJson(item)
+    const [submitDocument] = parseSubmitJson(submitPayload)
+    const chapter = submitDocument.chapterGroups[0]!.chapters[0]!
+
+    expect(chapter.chapterType).toBe('audio')
+    expect(chapter.audios).toEqual([])
+    expect(chapter.audioTabs).toEqual([
+      {
+        title: '中文：测试声优',
+        icon: '',
+        audios: [
+          {
+            title: '行动准备1',
+            profile: '准备出发。',
+            resourceUrl: 'https://example.invalid/zh-1.wav',
+          },
+          {
+            title: '行动准备2',
+            profile: '交给我吧。',
+            resourceUrl: 'https://example.invalid/zh-2.wav',
+          },
+        ],
+      },
+      {
+        title: '英语：Test Actor',
+        icon: 'https://example.invalid/en.png',
+        audios: [
+          {
+            title: '行动准备1',
+            profile: 'Ready to depart.',
+            resourceUrl: 'https://example.invalid/en-1.wav',
+          },
+          {
+            title: '行动准备2',
+            profile: 'Leave it to me.',
+            resourceUrl: 'https://example.invalid/en-2.wav',
+          },
+        ],
+      },
+    ])
+
+    const wikiXml = wikiJsonToXml(item).text
+    const submitXml = submitJsonToXml(submitPayload).text
+    expect(parseXml(wikiXml)).toEqual(wikiDocument)
+    expect(parseXml(submitXml)).toEqual(submitDocument)
+    expect(submitXml).toContain('<chapter size="large" name="干员语音" audio="true">')
+    expect(submitXml).toContain('<tab name="中文：测试声优" icon="">')
+    expect(submitXml).toContain(
+      '<tab name="英语：Test Actor" icon="https://example.invalid/en.png">'
+    )
+
+    const renderedSubmit = JSON.parse(xmlToSubmitJson(submitXml).text) as Record<string, any>
+    const submitAudio = audioWidgetsFromItem(renderedSubmit.item)[0]!
+    expect(submitAudio.tabList.map(({ title, icon }: Record<string, string>) => ({ title, icon })))
+      .toEqual([
+        { title: '中文：测试声优', icon: '' },
+        { title: '英语：Test Actor', icon: 'https://example.invalid/en.png' },
+      ])
+    const submitAudioLists = submitAudio.tabList.map(
+      ({ tabId }: Record<string, string>) => submitAudio.tabDataMap[tabId].audioList
+    ) as Array<Array<Record<string, string>>>
+    expect(submitAudioLists.flat().every((audio) => /^[A-Za-z0-9]{6}$/.test(audio.id))).toBe(true)
+    expect(submitAudioLists.map((list) => list.map(({ id: _id, ...audio }) => audio))).toEqual(
+      chapter.audioTabs!.map((tab) => tab.audios)
+    )
+
+    const renderedWiki = JSON.parse(xmlToWikiJson(submitXml).text) as Record<string, any>
+    const wikiAudio = audioWidgetsFromItem(renderedWiki)[0]!
+    const wikiAudioLists = wikiAudio.tabList.map(
+      ({ tabId }: Record<string, string>) => wikiAudio.tabDataMap[tabId].audioList
+    ) as Array<Array<Record<string, string>>>
+    expect(wikiAudioLists.flat().every((audio) => !Object.hasOwn(audio, 'id'))).toBe(true)
+    expect(wikiAudioLists).toEqual(chapter.audioTabs!.map((tab) => tab.audios))
+  })
+
+  test('emits audio ids only for flat submit JSON output', () => {
+    const renderedSubmit = JSON.parse(xmlToSubmitJson(sampleXmlText).text) as Record<string, any>
+    const submitAudioList = audioWidgetsFromItem(renderedSubmit.item)[0]!.tabDataMap.default.audioList
+    expect(submitAudioList.every((audio: Record<string, string>) =>
+      /^[A-Za-z0-9]{6}$/.test(audio.id)
+    )).toBe(true)
+
+    const renderedWiki = JSON.parse(xmlToWikiJson(sampleXmlText).text) as Record<string, any>
+    const wikiAudioList = audioWidgetsFromItem(renderedWiki)[0]!.tabDataMap.default.audioList
+    expect(wikiAudioList.every((audio: Record<string, string>) => !Object.hasOwn(audio, 'id')))
+      .toBe(true)
+  })
+
+  test('rejects missing tabbed audio data', () => {
+    const item = tabbedAudioItem()
+    delete item.document.widgetCommonMap.wTabbedAudio.tabDataMap.voiceEn
+
+    expect(() => wikiJsonToXml(item)).toThrow(
+      "Expected object at 'widgetCommonMap[wTabbedAudio].tabDataMap[voiceEn]'"
+    )
+  })
+
+  test('rejects invalid mixed or incomplete tabbed audio XML', () => {
+    expect(() => parseXml(audioChapterXml(`
+      <chapter size="large" name="Mixed" audio="true">
+        <audios></audios>
+        <tab name="中文"><audios></audios></tab>
+      </chapter>
+    `))).toThrow(/cannot contain both direct <audios> and <tab>/)
+
+    expect(() => parseXml(audioChapterXml(`
+      <chapter size="large" name="Missing" audio="true">
+        <tab name="中文"></tab>
+      </chapter>
+    `))).toThrow(/must contain exactly one <audios> element/)
+  })
+
+  test('rejects an audio DocumentModel with flat audios and audio tabs', () => {
+    const document = parseXml(sampleXmlText)
+    const chapter = document.chapterGroups
+      .flatMap((group) => group.chapters)
+      .find((candidate) => candidate.chapterType === 'audio')!
+    chapter.audioTabs = [{ title: '中文', icon: null, audios: [...chapter.audios] }]
+
+    expect(() => renderXml(document)).toThrow(/cannot contain both flat audios and audio tabs/)
+    expect(() => renderSubmitJson(document)).toThrow(/cannot contain both flat audios and audio tabs/)
   })
 
   test('parses submit JSON with commitMsg', () => {

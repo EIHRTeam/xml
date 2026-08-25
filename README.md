@@ -45,11 +45,16 @@ xml convert --from json --to xml --input item.json --output item.xml
 # XML -> JSON
 xml convert --from xml --to json --input item.xml --output item.json
 
+# item/update 提交体 -> XML -> item/update 提交体
+xml convert --from submit-json --to xml --input submit.json --output item.xml
+xml convert --from xml --to submit-json --input item.xml --output submit.json
+
 # 管道模式
 cat item.json | xml convert --from json --to xml
 ```
 
-格式说明：`json` 对应 wiki InfoItem/InfoRoot JSON，`xml` 对应 `<sklandDocument>` XML。
+格式说明：`json` 对应 `item/info` 的 InfoItem/InfoRoot 读取模型，`submit-json` 对应
+`item/update` 的 `{ commitMsg, item }` 写入模型，`xml` 对应 `<sklandDocument>` XML。
 
 ## API
 
@@ -59,6 +64,10 @@ cat item.json | xml convert --from json --to xml
 |------|------|
 | `wikiJsonToXml(json)` | InfoItem/InfoRoot JSON -> XML |
 | `xmlToWikiJson(xml, options?)` | XML -> InfoItem/InfoRoot JSON |
+| `submitJsonToXml(json)` | item/update SubmitRoot JSON -> XML |
+| `xmlToSubmitJson(xml)` | XML -> item/update SubmitRoot JSON |
+| `wikiJsonToSubmitJson(json)` | InfoItem/InfoRoot JSON -> item/update SubmitRoot JSON |
+| `submitJsonToWikiJson(json)` | item/update SubmitRoot JSON -> InfoItem JSON |
 | `wikiJsonToXmlBatch(entries)` | 批量 JSON -> XML |
 | `xmlToWikiJsonBatch(entries, options?)` | 批量 XML -> JSON |
 | `convert(source, options)` | 通用双向转换 |
@@ -108,14 +117,20 @@ interface WikiJsonToXmlBatchResult<TMeta = unknown> {
 
 ## 数据范围
 
-- JSON 范围是 `item/info` 正式页结构（InfoRoot 或 InfoItem），非通用 JSON。
+- `json` 范围是 `item/info` 正式页结构（InfoRoot 或 InfoItem），非通用 JSON。
+- `submit-json` 范围是 `item/update` 提交结构（SubmitRoot）。
 - XML 根节点为 `<sklandDocument>`。
 - `<publicMeta>` 保存正式页元数据，如 `lang`、`status`、`tagIds`、`createdUser`、`lastUpdatedUser`、`publishedAtTs`、`mainType`、`subType` 等。
 - `brief.description: null` 会保留空简介状态，XML 中表现为 `<description source="null">`。
 
 ### 兼容性说明
 
-转换以 `DocumentModel` 语义等价为目标，不承诺字节级 round-trip。生成 JSON 时会重新生成 `widgetCommonMap`、`documentMap`、block、tab、audio 等内部 id，但保持引用关系一致。
+转换以 `DocumentModel` 语义等价为目标，不承诺字节级 round-trip。生成 JSON 时会重新生成
+`widgetCommonMap`、`documentMap`、block、tab 等内部 id，并保持引用关系一致。`audioList[*].id`
+是提交态临时字段：生成 `submit-json` 时重新创建，生成 `item/info` 读取模型时省略。
+
+多 Tab 音频组件表示为 `<chapter audio="true">` 内的多个
+`<tab name="..." icon="..."><audios>...</audios></tab>`；旧的直属 `<audios>` 平铺格式继续支持。
 
 接受的公开响应边界值：空章节标题、空 `content` / `intro.description` 文档引用、`brief.description: null`、图片 URL 无法反推 id/format 时由 XML 显式保存 `<id>` 与 `<format>`、低于 100px 的表格列宽、复杂表格单元格覆盖关系。
 

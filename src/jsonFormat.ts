@@ -4,6 +4,7 @@ import { IdFactory } from './ids'
 import { cloneRecord, normalizeMetaRecord, omitKeys } from './publicMeta'
 import {
   AudioItem,
+  AudioTab,
   Block,
   Chapter,
   ChapterGroup,
@@ -46,6 +47,8 @@ export interface RenderWikiJsonOptions {
   envelope?: Record<string, unknown>
 }
 
+type JsonRenderTarget = 'wiki' | 'submit'
+
 function ensureMapping(value: unknown, location: string): Record<string, unknown> {
   if (!isRecord(value)) {
     throw new EndfieldWikitextConversionError(`Expected object at '${location}'.`)
@@ -63,6 +66,22 @@ function requireList(payload: Record<string, unknown>, location: string, key: st
     throw new EndfieldWikitextConversionError(`Expected list at '${location}'.`)
   }
   return value
+}
+
+function nullableString(value: unknown) {
+  return typeof value === 'string' ? value : value == null ? null : String(value)
+}
+
+function audioItemsFromList(raw: unknown[], location: string): AudioItem[] {
+  return raw.map((entry, index) => {
+    const entryLocation = `${location}[${index}]`
+    const entryMap = ensureMapping(entry, entryLocation)
+    return {
+      title: requireString(entryMap, `${entryLocation}.title`, 'title'),
+      profile: requireString(entryMap, `${entryLocation}.profile`, 'profile'),
+      resourceUrl: requireString(entryMap, `${entryLocation}.resourceUrl`, 'resourceUrl'),
+    }
+  })
 }
 
 function requireString(
@@ -247,9 +266,10 @@ export function parseSubmitJson(source: string | object): [DocumentModel, string
   return [buildDocumentFromItem(parsed.item, {}, commitMsg), []]
 }
 
-export function documentToWikiJsonObject(
+function buildWikiJsonObject(
   document: DocumentModel,
-  options: RenderWikiJsonOptions = {}
+  options: RenderWikiJsonOptions,
+  target: JsonRenderTarget,
 ) {
   const factory = new IdFactory()
   const widgetCommonMap: Record<string, unknown> = {}
@@ -261,7 +281,7 @@ export function documentToWikiJsonObject(
     for (const chapter of group.chapters) {
       const widgetId = factory.widgetId()
       widgets.push({ id: widgetId, title: chapter.title, size: chapter.size })
-      widgetCommonMap[widgetId] = chapterToJson(chapter, documentMap, factory)
+      widgetCommonMap[widgetId] = chapterToJson(chapter, documentMap, factory, target)
     }
     chapterGroups.push({ title: group.title, widgets })
   }
@@ -320,6 +340,13 @@ export function documentToWikiJsonObject(
   }
 }
 
+export function documentToWikiJsonObject(
+  document: DocumentModel,
+  options: RenderWikiJsonOptions = {}
+) {
+  return buildWikiJsonObject(document, options, 'wiki')
+}
+
 export function documentToJsonText(
   document: DocumentModel,
   options: RenderWikiJsonOptions = {}
@@ -330,7 +357,7 @@ export function documentToJsonText(
 }
 
 export function renderSubmitJson(document: DocumentModel): string {
-  const item = documentToWikiJsonObject(document)
+  const item = buildWikiJsonObject(document, {}, 'submit')
   const payload = {
     commitMsg: document.commitMsg ?? '',
     item,
@@ -387,17 +414,42 @@ function chapterFromJson(
   }
 
   if (chapterType === 'audio') {
-    const tabDataMap = requireMapping(common, `widgetCommonMap[${widgetId}].tabDataMap`, 'tabDataMap')
-    const defaultData = ensureMapping(tabDataMap.default, `widgetCommonMap[${widgetId}].tabDataMap.default`)
-    const audioList = requireList(defaultData, 'audio default audioList', 'audioList')
-    const audios: AudioItem[] = audioList.map((entry) => {
-      const entryMap = ensureMapping(entry, 'audio entry')
+    const widgetLocation = `widgetCommonMap[${widgetId}]`
+    const tabDataMap = requireMapping(common, `${widgetLocation}.tabDataMap`, 'tabDataMap')
+    const tabList = requireList(common, `${widgetLocation}.tabList`, 'tabList')
+
+    if (tabList.length) {
+      const audioTabs: AudioTab[] = tabList.map((tabData, index) => {
+        const tabLocation = `${widgetLocation}.tabList[${index}]`
+        const tabMap = ensureMapping(tabData, tabLocation)
+        const tabId = requireString(tabMap, `${tabLocation}.tabId`, 'tabId')
+        const dataLocation = `${widgetLocation}.tabDataMap[${tabId}]`
+        const data = ensureMapping(tabDataMap[tabId], dataLocation)
+        const audioList = requireList(data, `${dataLocation}.audioList`, 'audioList')
+
+        return {
+          title: nullableString(tabMap.title),
+          icon: nullableString(tabMap.icon),
+          audios: audioItemsFromList(audioList, `${dataLocation}.audioList`),
+        }
+      })
+
       return {
-        title: requireString(entryMap, 'audio.title', 'title'),
-        profile: requireString(entryMap, 'audio.profile', 'profile'),
-        resourceUrl: requireString(entryMap, 'audio.resourceUrl', 'resourceUrl'),
+        title,
+        size,
+        chapterType: 'audio',
+        content: [],
+        tabs: [],
+        audios: [],
+        audioTabs,
+        tableRows: [],
       }
-    })
+    }
+
+    const defaultLocation = `${widgetLocation}.tabDataMap.default`
+    const defaultData = ensureMapping(tabDataMap.default, defaultLocation)
+    const audioList = requireList(defaultData, `${defaultLocation}.audioList`, 'audioList')
+    const audios = audioItemsFromList(audioList, `${defaultLocation}.audioList`)
 
     return {
       title,
@@ -442,12 +494,9 @@ function chapterFromJson(
         }
       }
 
-      const rawTitle = tabMap.title
-      const rawIcon = tabMap.icon
       tabs.push({
-        title:
-          typeof rawTitle === 'string' ? rawTitle : rawTitle == null ? null : String(rawTitle),
-        icon: typeof rawIcon === 'string' ? rawIcon : rawIcon == null ? null : String(rawIcon),
+        title: nullableString(tabMap.title),
+        icon: nullableString(tabMap.icon),
         intro,
         content: blocks,
       })
@@ -764,7 +813,8 @@ function inlinesFromJson(inlineElements: unknown[]): Inline[] {
 function chapterToJson(
   chapter: Chapter,
   documentMap: Record<string, unknown>,
-  factory: IdFactory
+  factory: IdFactory,
+  target: JsonRenderTarget,
 ): Record<string, unknown> {
   if (chapter.chapterType === 'simple_table') {
     const tableList: Array<Record<string, string>> = []
@@ -787,17 +837,46 @@ function chapterToJson(
   }
 
   if (chapter.chapterType === 'audio') {
+    const audioTabs = chapter.audioTabs ?? []
+    if (audioTabs.length && chapter.audios.length) {
+      throw new EndfieldWikitextConversionError(
+        `Audio chapter '${chapter.title}' cannot contain both flat audios and audio tabs.`
+      )
+    }
+
+    if (audioTabs.length) {
+      const tabList: Array<Record<string, string>> = []
+      const tabDataMap: Record<string, unknown> = {}
+
+      for (const tab of audioTabs) {
+        const tabId = factory.tabId()
+        tabList.push({
+          tabId,
+          title: tab.title ?? '',
+          icon: tab.icon ?? '',
+        })
+        tabDataMap[tabId] = {
+          intro: null,
+          content: '',
+          audioList: audioItemsToJson(tab.audios, factory, target),
+        }
+      }
+
+      return {
+        type: 'audio',
+        tableList: [],
+        tabList,
+        tabDataMap,
+      }
+    }
+
     return {
       type: 'audio',
       tableList: [],
       tabList: [],
       tabDataMap: {
         default: {
-          audioList: chapter.audios.map((entry) => ({
-            title: entry.title,
-            profile: entry.profile,
-            resourceUrl: entry.resourceUrl,
-          })),
+          audioList: audioItemsToJson(chapter.audios, factory, target),
           intro: null,
           content: '',
         },
@@ -872,6 +951,19 @@ function chapterToJson(
       default: tabData,
     },
   }
+}
+
+function audioItemsToJson(
+  audios: AudioItem[],
+  factory: IdFactory,
+  target: JsonRenderTarget,
+) {
+  return audios.map((entry) => ({
+    title: entry.title,
+    profile: entry.profile,
+    resourceUrl: entry.resourceUrl,
+    ...(target === 'submit' ? { id: factory.audioId() } : {}),
+  }))
 }
 
 function storeDocument(

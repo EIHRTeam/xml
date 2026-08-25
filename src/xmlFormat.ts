@@ -4,6 +4,7 @@ import { hasMeta, normalizeMetaRecord, type XmlPublicMeta } from './publicMeta'
 import { CDATA_SECTION_NODE, ELEMENT_NODE, TEXT_NODE, parseXmlDocument } from './xmlDom'
 import {
   AudioItem,
+  AudioTab,
   Block,
   Chapter,
   ChapterGroup,
@@ -276,12 +277,44 @@ function chapterFromXml(chapter: Element): Chapter {
   }
 
   if (chapter.getAttribute('audio') === 'true') {
+    const tabs = childrenByTag(chapter, 'tab')
+    const directAudios = childrenByTag(chapter, 'audios')
+    if (tabs.length && directAudios.length) {
+      throw new EndfieldWikitextConversionError(
+        `Audio chapter '${title}' cannot contain both direct <audios> and <tab> elements.`
+      )
+    }
+
+    if (tabs.length) {
+      const audioTabs: AudioTab[] = tabs.map((tab, index) => {
+        const audioContainers = childrenByTag(tab, 'audios')
+        if (audioContainers.length !== 1) {
+          throw new EndfieldWikitextConversionError(
+            `Audio chapter '${title}' tab ${index + 1} must contain exactly one <audios> element.`
+          )
+        }
+
+        return {
+          title: tab.getAttribute('name'),
+          icon: tab.getAttribute('icon'),
+          audios: audioItemsFromXml(audioContainers[0]!),
+        }
+      })
+
+      return {
+        title,
+        size,
+        chapterType: 'audio',
+        content: [],
+        tabs: [],
+        audios: [],
+        audioTabs,
+        tableRows: [],
+      }
+    }
+
     const audiosContainer = requireChild(chapter, 'audios')
-    const audios = childrenByTag(audiosContainer, 'audio').map((audio) => ({
-      title: audio.getAttribute('name') || '',
-      profile: normalizedMultilineText(directTextContent(audio)),
-      resourceUrl: audio.getAttribute('src') || '',
-    }))
+    const audios = audioItemsFromXml(audiosContainer)
 
     return {
       title,
@@ -316,6 +349,14 @@ function chapterFromXml(chapter: Element): Chapter {
     audios: [],
     tableRows: [],
   }
+}
+
+function audioItemsFromXml(audiosContainer: Element): AudioItem[] {
+  return childrenByTag(audiosContainer, 'audio').map((audio) => ({
+    title: audio.getAttribute('name') || '',
+    profile: normalizedMultilineText(directTextContent(audio)),
+    resourceUrl: audio.getAttribute('src') || '',
+  }))
 }
 
 function tabFromXml(tab: Element, chapterSize: string): Tab {
@@ -1062,12 +1103,25 @@ function renderChapter(chapter: Chapter, indent: number) {
     attrs.audio = 'true'
   }
 
+  const audioTabs = chapter.audioTabs ?? []
+  if (chapter.chapterType === 'audio' && audioTabs.length && chapter.audios.length) {
+    throw new EndfieldWikitextConversionError(
+      `Audio chapter '${chapter.title}' cannot contain both flat audios and audio tabs.`
+    )
+  }
+
   const lines = openContainer('chapter', attrs, indent)
 
   if (chapter.chapterType === 'simple_table') {
     lines.push(...renderSimpleTable(chapter.tableRows, indent + 4))
   } else if (chapter.chapterType === 'audio') {
-    lines.push(...renderAudioList(chapter.audios, indent + 4))
+    if (audioTabs.length) {
+      for (const tab of audioTabs) {
+        lines.push(...renderAudioTab(tab, indent + 4))
+      }
+    } else {
+      lines.push(...renderAudioList(chapter.audios, indent + 4))
+    }
   } else if (chapter.tabs.length) {
     for (const tab of chapter.tabs) {
       lines.push(...renderTab(tab, indent + 4))
@@ -1077,6 +1131,21 @@ function renderChapter(chapter: Chapter, indent: number) {
   }
 
   lines.push(`${' '.repeat(indent)}</chapter>`)
+  return lines
+}
+
+function renderAudioTab(tab: AudioTab, indent: number) {
+  const attrs: Record<string, string> = {}
+  if (tab.title !== null) {
+    attrs.name = tab.title
+  }
+  if (tab.icon !== null) {
+    attrs.icon = tab.icon
+  }
+
+  const lines = openContainer('tab', attrs, indent)
+  lines.push(...renderAudioList(tab.audios, indent + 4))
+  lines.push(`${' '.repeat(indent)}</tab>`)
   return lines
 }
 

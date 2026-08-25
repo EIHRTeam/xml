@@ -135,6 +135,12 @@ export interface AudioItem {
   resourceUrl: string
 }
 
+export interface AudioTab {
+  title: string | null
+  icon: string | null
+  audios: AudioItem[]
+}
+
 export interface TableRow {
   cells: Array<[string, string]>
 }
@@ -146,6 +152,7 @@ export interface Chapter {
   content: Block[]
   tabs: Tab[]
   audios: AudioItem[]
+  audioTabs?: AudioTab[]
   tableRows: TableRow[]
 }
 
