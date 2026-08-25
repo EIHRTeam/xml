@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@eihrteam/xml",
-  "version": "0.5.0-rc.1",
+  "version": "0.5.0",
   "description": "Convert SKLand Endfield Wiki public item JSON and XML locally.",
   "license": "MIT",
   "type": "module",
