@@ -52,16 +52,16 @@
     "@xmldom/xmldom": "0.9.12"
   },
   "devDependencies": {
-    "@types/node": "^26.3.0",
+    "@types/node": "^26.4.1",
     "tsdown": "^0.23.0",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.0"
   },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "engines": {
-    "node": ">=20"
+    "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
   }
 }
