@@ -16,6 +16,16 @@ SKLand Endfield Wiki JSON 与 XML 的本地互转工具包。处理 `item/info` 
 pnpm add @eihrteam/xml
 ```
 
+## 本地开发
+
+构建使用 tsdown，需要 Node.js 22.18+（22.x）、24.11+（24.x）或 26+；建议使用 Node.js 24.11+ 的 24.x LTS 版本。发布产物仍支持 Node.js 20+。
+
+```bash
+pnpm install
+pnpm check
+pnpm pack:dry-run
+```
+
 ## 基本用法
 
 ```ts

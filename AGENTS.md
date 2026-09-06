@@ -7,7 +7,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 ```bash
 pnpm test              # vitest run (single test file: tests/converter.test.ts)
 pnpm typecheck         # tsc --noEmit
-pnpm build             # tsup src/index.ts src/cli.ts --format esm --dts --clean --target es2022 --minify
+pnpm build             # tsdown + tsc declaration emit (tsconfig.build.json)
 pnpm check             # typecheck + test + build (CI gate)
 pnpm pack:dry-run      # build + dry-run pack for verifying package contents
 ```

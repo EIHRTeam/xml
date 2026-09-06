@@ -36,18 +36,31 @@ jobs:
         with:
           run_install: false
 
-      - name: Setup Node
+      - name: Setup build Node
         uses: actions/setup-node@v7
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 24
           cache: pnpm
 
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Check
-        run: pnpm check
+      - name: Build and typecheck
+        run: pnpm typecheck && pnpm build
 
       - name: Verify package contents
         if: matrix.node-version == '24'
         run: pnpm pack:dry-run
+
+      - name: Setup runtime Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Test
+        run: pnpm test
+
+      - name: Verify built entry points
+        run: |
+          node --input-type=module -e "import('@eihrteam/xml')"
+          node dist/cli.js --help
