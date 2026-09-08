@@ -1,3 +1,5 @@
+import { copyIdentity } from './identity.js'
+
 export class XmlWikiConversionError extends Error {
   constructor(message: string) {
     super(message)
@@ -305,17 +307,17 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
       if (nextParagraph.kind !== 'body' && !nextParagraph.inlines.length) {
         continue
       }
-      normalized.push(nextParagraph)
+      normalized.push(copyIdentity(block, nextParagraph))
       continue
     }
 
     if (isQuote(block)) {
       const children = normalizeBlocks(block.children)
       if (children.length) {
-        normalized.push({
+        normalized.push(copyIdentity(block, {
           blockType: 'quote',
           children,
-        })
+        }))
       }
       continue
     }
@@ -325,15 +327,15 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
       for (const item of block.items) {
         const itemBlocks = normalizeBlocks(item.blocks)
         if (itemBlocks.length) {
-          items.push({ blocks: itemBlocks })
+          items.push(copyIdentity(item, { blocks: itemBlocks }))
         }
       }
       if (items.length) {
-        normalized.push({
+        normalized.push(copyIdentity(block, {
           blockType: 'list',
           ordered: block.ordered,
           items,
-        })
+        }))
       }
       continue
     }
@@ -363,7 +365,7 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
         columnCount: block.columnCount,
       }
       validateComplexTableBlock(nextTable)
-      normalized.push(nextTable)
+      normalized.push(copyIdentity(block, nextTable))
       continue
     }
 
@@ -387,7 +389,7 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
     collapsed.push(block)
   }
 
-  return collapsed
+  return copyIdentity(blocks, collapsed)
 }
 
 export function blocksToPlainText(blocks: Block[]): string {

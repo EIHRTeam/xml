@@ -262,7 +262,7 @@ function chapterFromXml(chapter: Element): Chapter {
       }
 
       rows.push({
-        cells: cells.map((cell) => [cell.getAttribute('label') || '', normalizedText(directTextContent(cell))]),
+        cells: cells.map((cell) => [cell.getAttribute('label') || '', contentTextWithBreaks(cell)]),
       })
     }
 
@@ -355,7 +355,7 @@ function chapterFromXml(chapter: Element): Chapter {
 function audioItemsFromXml(audiosContainer: Element): AudioItem[] {
   return childrenByTag(audiosContainer, 'audio').map((audio) => ({
     title: audio.getAttribute('name') || '',
-    profile: normalizedMultilineText(directTextContent(audio)),
+    profile: contentTextWithBreaks(audio, true),
     resourceUrl: audio.getAttribute('src') || '',
   }))
 }
@@ -607,7 +607,7 @@ function parseBlockElement(
       size: normalizedText(directTextContent(requireChild(element, 'size'))),
       imageId: explicitId ? normalizedText(directTextContent(explicitId)) : inferredParts![0],
       imageFormat: explicitFormat ? normalizedText(directTextContent(explicitFormat)) : inferredParts![1],
-      description: normalizedText(directTextContent(requireChild(element, 'description')), ''),
+      description: contentTextWithBreaks(requireChild(element, 'description')),
     }
   }
 
@@ -914,6 +914,11 @@ function parseInlineElement(
   const color = state?.color ?? null
   const preserveNewlines = state?.preserveNewlines ?? false
 
+  if (element.tagName === 'br') {
+    assertEmptyLineBreak(element)
+    return [textRun('\n', { bold, italic, underline, strike, color })]
+  }
+
   if (element.tagName === 'b') {
     return parseInlineContainer(element, { bold: true, italic, underline, strike, color, preserveNewlines })
   }
@@ -952,7 +957,7 @@ function parseInlineElement(
     return [
       {
         inlineType: 'pronunciation',
-        content: normalizedText(element.textContent),
+        content: contentTextWithBreaks(element),
       },
     ]
   }
@@ -962,7 +967,7 @@ function parseInlineElement(
       {
         inlineType: 'link',
         href: element.getAttribute('href') || '',
-        text: normalizedText(element.textContent),
+        text: contentTextWithBreaks(element),
       },
     ]
   }
@@ -1187,10 +1192,7 @@ function renderAudioList(audios: AudioItem[], indent: number) {
   for (const audio of audios) {
     const attrs = `name=${quoteAttr(audio.title)} src=${quoteAttr(audio.resourceUrl)}`
     lines.push(`${pad}    <audio ${attrs}>`)
-    const profileLines = audio.profile ? audio.profile.split('\n') : []
-    for (const line of profileLines) {
-      lines.push(`${pad}        ${escapeXmlText(line)}`)
-    }
+    if (audio.profile) lines.push(`${pad}        ${renderTextWithBreaks(audio.profile)}`)
     lines.push(`${pad}    </audio>`)
   }
 
@@ -1208,7 +1210,7 @@ function renderSimpleTable(rows: TableRow[], indent: number) {
     }
     lines.push(`${pad}    <row>`)
     for (const [label, value] of row.cells) {
-      lines.push(`${pad}        <cell label=${quoteAttr(label)}>${escapeXmlText(value)}</cell>`)
+      lines.push(`${pad}        <cell label=${quoteAttr(label)}>${renderTextWithBreaks(value)}</cell>`)
     }
     lines.push(`${pad}    </row>`)
   }
@@ -1302,7 +1304,7 @@ function renderBlock(block: Block, indent: number): string[] {
       `${pad}    <height>${escapeXmlText(block.height)}</height>`,
       `${pad}    <size>${escapeXmlText(block.size)}</size>`,
       `${pad}    <url>${escapeXmlText(block.url)}</url>`,
-      `${pad}    <description>${escapeXmlText(block.description)}</description>`,
+      `${pad}    <description>${renderTextWithBreaks(block.description)}</description>`,
       `${pad}</img>`,
     ]
   }
@@ -1373,13 +1375,48 @@ function renderComplexTable(block: ComplexTableBlock, indent: number) {
   return lines
 }
 
+/** XML layout newlines remain paragraph separators; explicit breaks stay inline. */
+function renderTextWithBreaks(value: string): string {
+  return escapeXmlText(value).replace(/\r\n|\r|\n/g, '<br></br>')
+}
+
+function assertEmptyLineBreak(element: Element): void {
+  if (Array.from(element.childNodes).some((child) =>
+    child.nodeType === ELEMENT_NODE || Boolean(child.nodeValue?.trim())
+  )) {
+    throw new EndfieldWikitextConversionError('<br> must not contain content.')
+  }
+}
+
+/** Normalize layout whitespace without collapsing explicit br elements. */
+function contentTextWithBreaks(element: Element, multiline = false): string {
+  const parts = ['']
+  function visit(parent: Element): void {
+    for (const child of Array.from(parent.childNodes)) {
+      if (child.nodeType === TEXT_NODE || child.nodeType === CDATA_SECTION_NODE) {
+        parts[parts.length - 1] += child.nodeValue ?? ''
+      } else if (child.nodeType === ELEMENT_NODE) {
+        const nested = child as Element
+        if (nested.tagName === 'br') {
+          assertEmptyLineBreak(nested)
+          parts.push('')
+        } else {
+          visit(nested)
+        }
+      }
+    }
+  }
+  visit(element)
+  return parts.map((part) => multiline ? normalizedMultilineText(part) : normalizedText(part)).join('\n')
+}
+
 function renderInlines(inlines: Inline[]) {
   return inlines.map((inline) => renderInline(inline)).join('')
 }
 
 function renderInline(inline: Inline) {
   if (isTextRun(inline)) {
-    let value = escapeXmlText(inline.text)
+    let value = renderTextWithBreaks(inline.text)
     if (inline.color !== null) {
       value = `<color value=${quoteAttr(inline.color)}>${value}</color>`
     }
@@ -1399,11 +1436,11 @@ function renderInline(inline: Inline) {
   }
 
   if (inline.inlineType === 'pronunciation') {
-    return `<pron>${escapeXmlText(inline.content)}</pron>`
+    return `<pron>${renderTextWithBreaks(inline.content)}</pron>`
   }
 
   if (inline.inlineType === 'link') {
-    return `<a href=${quoteAttr(inline.href)}>${escapeXmlText(inline.text)}</a>`
+    return `<a href=${quoteAttr(inline.href)}>${renderTextWithBreaks(inline.text)}</a>`
   }
 
   if (inline.inlineType === 'entry') {

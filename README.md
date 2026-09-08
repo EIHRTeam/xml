@@ -157,3 +157,52 @@ interface WikiJsonToXmlBatchResult<TMeta = unknown> {
 ## 许可证
 
 MIT
+
+### Reuse component IDs when editing
+
+Starting with 0.6.0, JSON renderers accept an optional `referenceJson`:
+
+```ts
+import { submitJsonToXml, xmlToSubmitJson } from '@eihrteam/xml'
+
+const xml = submitJsonToXml(originalSubmitJson).text
+const result = xmlToSubmitJson(editedXml || xml, {
+  referenceJson: originalSubmitJson,
+})
+```
+
+The reference can be a JSON string or object: a submit envelope (`{ item,
+commitMsg }`), a Wiki response (`{ data: { item } }`), or a bare item. Its `itemId`
+must match the item being rendered. Invalid references throw conversion errors.
+The option is also available on `renderSubmitJson`, `renderWikiJson`,
+`documentToWikiJsonObject`, `xmlToWikiJson`, `convert` with a Wiki JSON target,
+and the direct JSON-to-JSON conversion helpers. `RenderJsonOptions` describes
+shared rendering options; `RenderWikiJsonOptions` adds Wiki envelope options.
+
+Matching preserves widget, tab, document, block, list item, table row/column,
+audio and video element identities. Exact content is matched first, followed by
+unique local titles/resources, then compatible positions between matched
+siblings. Unique unchanged content can move between parents; repeated content
+is matched in order without reusing one identity for multiple copies. Table
+cells follow the matched row and column identities. In ambiguous cases, new
+IDs are generated. Resource and business IDs retain their existing semantics.
+
+XML stays unchanged and carries no hidden identity attributes. Empty blocks
+removed by existing normalization do not consume other blocks' identities.
+This is not a lossless JSON round trip: formatting and existing normalization
+of non-ID fields are unchanged. Without `referenceJson`, IDs are generated as
+before. Editors should cache successful conversions and use their latest
+successful JSON as the next reference so newly inserted components keep their
+IDs between diff, format conversion and submission. Failed conversions must
+not replace that reference.
+
+### Explicit line breaks
+
+Text content containing LF, CRLF or CR is rendered with one closed `<br></br>`
+per newline, including consecutive and leading/trailing breaks. The parser
+accepts both `<br></br>` and `<br/>` and restores inline `\n` characters, keeping
+the containing paragraph and its component identity intact. Formatting wrappers,
+links, pronunciations, table content, image descriptions and audio profiles
+preserve these explicit breaks. Existing XML layout newlines continue to separate
+paragraphs. Literal text such as `<br>` is escaped normally; a `br` element with
+content is rejected.

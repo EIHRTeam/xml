@@ -54,6 +54,7 @@ export {
   parseSubmitJson,
   renderSubmitJson,
   type RenderWikiJsonOptions,
+  type RenderJsonOptions,
 } from './jsonFormat.js'
 export {
   documentFromXmlText as parseXmlWithWarnings,
