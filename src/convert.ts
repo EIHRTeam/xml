@@ -5,6 +5,7 @@ import {
   parseSubmitJson,
   renderSubmitJson,
   type RenderWikiJsonOptions,
+  type RenderJsonOptions,
 } from './jsonFormat.js'
 import { documentFromXmlText, documentToXmlText } from './xmlFormat.js'
 import type {
@@ -125,17 +126,17 @@ export function submitJsonToXml(json: string | object): ConversionResult {
   return { text: documentToXmlText(document), warnings }
 }
 
-export function xmlToSubmitJson(xml: string): ConversionResult {
+export function xmlToSubmitJson(xml: string, options: RenderJsonOptions = {}): ConversionResult {
   const [document, warnings] = documentFromXmlText(xml)
-  return { text: renderSubmitJson(document), warnings }
+  return { text: renderSubmitJson(document, options), warnings }
 }
 
-export function wikiJsonToSubmitJson(json: string | object): ConversionResult {
+export function wikiJsonToSubmitJson(json: string | object, options: RenderJsonOptions = {}): ConversionResult {
   const [document, warnings] = documentFromJsonText(json)
-  return { text: renderSubmitJson(document), warnings }
+  return { text: renderSubmitJson(document, options), warnings }
 }
 
-export function submitJsonToWikiJson(json: string | object): ConversionResult {
+export function submitJsonToWikiJson(json: string | object, options: RenderWikiJsonOptions = {}): ConversionResult {
   const [document, warnings] = parseSubmitJson(json)
-  return { text: documentToJsonText(document), warnings }
+  return { text: documentToJsonText(document, options), warnings }
 }

@@ -1,3 +1,5 @@
+import { identity, withIdentity } from './identity.js'
+import { prepareIdReuse } from './id-reuse.js'
 import { DEFAULT_JSON_TEXT_COLOR, JSON_TO_XML_COLOR, XML_TO_JSON_COLOR } from './colors.js'
 import {
   JSON_ENTRY_TO_XML,
@@ -39,7 +41,11 @@ import {
   validateComplexTableBlock,
 } from './model.js'
 
-export interface RenderWikiJsonOptions {
+export interface RenderJsonOptions {
+  referenceJson?: string | object
+}
+
+export interface RenderWikiJsonOptions extends RenderJsonOptions {
   wrapInfoRoot?: boolean
   envelope?: Record<string, unknown>
 }
@@ -73,11 +79,11 @@ function audioItemsFromList(raw: unknown[], location: string): AudioItem[] {
   return raw.map((entry, index) => {
     const entryLocation = `${location}[${index}]`
     const entryMap = ensureMapping(entry, entryLocation)
-    return {
+    return withIdentity({
       title: requireString(entryMap, `${entryLocation}.title`, 'title'),
       profile: requireString(entryMap, `${entryLocation}.profile`, 'profile'),
       resourceUrl: requireString(entryMap, `${entryLocation}.resourceUrl`, 'resourceUrl'),
-    }
+    }, typeof entryMap.id === 'string' ? { id: entryMap.id } : {})
   })
 }
 
@@ -263,20 +269,49 @@ export function parseSubmitJson(source: string | object): [DocumentModel, string
   return [buildDocumentFromItem(parsed.item, {}, commitMsg), []]
 }
 
+function reservedJsonIds(value: unknown, ids = new Set<string>()): Set<string> {
+  if (Array.isArray(value)) {
+    for (const entry of value) reservedJsonIds(entry, ids)
+  } else if (isRecord(value)) {
+    for (const [key, entry] of Object.entries(value)) {
+      if (['id', 'parentId', 'tabId', 'elementId'].includes(key) && typeof entry === 'string') ids.add(entry)
+      if (['blockIds', 'childIds', 'itemIds', 'rowIds', 'columnIds'].includes(key) && Array.isArray(entry)) {
+        for (const id of entry) if (typeof id === 'string') ids.add(id)
+      }
+      if (['widgetCommonMap', 'documentMap', 'blockMap', 'itemMap', 'tabDataMap', 'rowMap', 'columnMap', 'cellMap'].includes(key) && isRecord(entry)) {
+        for (const id of Object.keys(entry)) ids.add(id)
+      }
+      reservedJsonIds(entry, ids)
+    }
+  }
+  return ids
+}
+
 function buildWikiJsonObject(
   document: DocumentModel,
   options: RenderWikiJsonOptions,
   target: JsonRenderTarget,
 ) {
-  const factory = new IdFactory()
-  const widgetCommonMap: Record<string, unknown> = {}
-  const documentMap: Record<string, unknown> = {}
+  let factory = new IdFactory()
+  if (options.referenceJson !== undefined) {
+    const parsed = ensureMapping(parseJsonInput(options.referenceJson), 'referenceJson')
+    const reference = isRecord(parsed.item)
+      ? parseSubmitJson(parsed)[0]
+      : documentFromJsonText(parsed)[0]
+    if (reference.itemId !== document.itemId) {
+      throw new EndfieldWikitextConversionError('referenceJson itemId does not match the rendered itemId.')
+    }
+    document = structuredClone(document)
+    factory = prepareIdReuse(document, reference, (intro) => introDocumentBlocks(intro, true), reservedJsonIds(parsed))
+  }
+  const widgetCommonMap: Record<string, unknown> = Object.create(null)
+  const documentMap: Record<string, unknown> = Object.create(null)
   const chapterGroups: Array<Record<string, unknown>> = []
 
   for (const group of document.chapterGroups) {
     const widgets: Array<Record<string, unknown>> = []
     for (const chapter of group.chapters) {
-      const widgetId = factory.widgetId()
+      const widgetId = factory.reuse(chapter, 'id', () => factory.widgetId(), 'widgets')
       widgets.push({ id: widgetId, title: chapter.title, size: chapter.size })
       widgetCommonMap[widgetId] = chapterToJson(chapter, documentMap, factory, target)
     }
@@ -353,8 +388,8 @@ export function documentToJsonText(
   return `${JSON.stringify(payload, null, 4)}\n`
 }
 
-export function renderSubmitJson(document: DocumentModel): string {
-  const item = buildWikiJsonObject(document, {}, 'submit')
+export function renderSubmitJson(document: DocumentModel, options: RenderJsonOptions = {}): string {
+  const item = buildWikiJsonObject(document, options, 'submit')
   const payload = {
     commitMsg: document.commitMsg ?? '',
     item,
@@ -363,6 +398,21 @@ export function renderSubmitJson(document: DocumentModel): string {
 }
 
 function chapterFromJson(
+  widget: Record<string, unknown>,
+  widgetCommonMap: Record<string, unknown>,
+  documentMap: Record<string, unknown>,
+): Chapter {
+  const chapter = readChapterFromJson(widget, widgetCommonMap, documentMap)
+  const id = widget.id as string
+  const common = widgetCommonMap[id] as Record<string, unknown>
+  const tabs = (common.tabList ?? []) as Array<{ tabId: string }>
+  ;(chapter.audioTabs ?? chapter.tabs).forEach((tab, index) => {
+    withIdentity(tab, { id: tabs[index]!.tabId })
+  })
+  return withIdentity(chapter, { id })
+}
+
+function readChapterFromJson(
   widget: Record<string, unknown>,
   widgetCommonMap: Record<string, unknown>,
   documentMap: Record<string, unknown>
@@ -487,7 +537,12 @@ function chapterFromJson(
         }
         if (descriptionId) {
           const descriptionDoc = ensureMapping(documentMap[descriptionId], `documentMap[${descriptionId}]`)
-          intro.description = blocksToInlines(blocksFromDocument(descriptionDoc))
+          const introBlocks = withIdentity(blocksFromDocument(descriptionDoc), {
+            id: typeof descriptionDoc.id === 'string' ? descriptionDoc.id : 'document-id',
+            documentId: descriptionId,
+          })
+          intro.description = blocksToInlines(introBlocks)
+          withIdentity(intro, { introBlocks })
         }
       }
 
@@ -537,20 +592,23 @@ function chapterContentFromRef(
     throw new EndfieldWikitextConversionError(`Expected string at '${chapterTitle}.${refName}.content'.`)
   }
   const document = ensureMapping(documentMap[documentId], `documentMap[${documentId}]`)
-  return blocksFromDocument(document)
+  return withIdentity(blocksFromDocument(document), {
+    id: typeof document.id === 'string' ? document.id : 'document-id',
+    documentId,
+  })
 }
 
 function blocksFromDocument(document: Record<string, unknown>) {
   const blockIds = requireList(document, 'document.blockIds', 'blockIds')
   const blockMap = requireMapping(document, 'document.blockMap', 'blockMap')
-  return normalizeBlocks(
+  return withIdentity(normalizeBlocks(
     blockIds.map((blockId) => {
       if (typeof blockId !== 'string') {
         throw new EndfieldWikitextConversionError('Expected block ids to be strings.')
       }
       return blockFromJson(blockId, blockMap, { allowTables: true })
     })
-  )
+  ), { id: typeof document.id === 'string' ? document.id : 'document-id' })
 }
 
 function blocksFromChildIds(
@@ -569,6 +627,22 @@ function blocksFromChildIds(
 }
 
 function blockFromJson(
+  blockId: string,
+  blockMap: Record<string, unknown>,
+  options: { allowTables: boolean },
+): Block {
+  const block = readBlockFromJson(blockId, blockMap, options)
+  const raw = blockMap[blockId] as Record<string, unknown>
+  const table = raw.table as { rowIds: string[]; columnIds: string[] } | undefined
+  const video = raw.externalVideo as { elementId?: string } | undefined
+  return withIdentity(block, {
+    id: blockId,
+    ...(table ? { rowIds: [...table.rowIds], columnIds: [...table.columnIds] } : {}),
+    ...(video?.elementId ? { elementId: video.elementId } : {}),
+  })
+}
+
+function readBlockFromJson(
   blockId: string,
   blockMap: Record<string, unknown>,
   options: { allowTables: boolean }
@@ -609,9 +683,9 @@ function blockFromJson(
       }
       const item = ensureMapping(itemMap[itemId], `itemMap[${itemId}]`)
       const childIds = requireList(item, `item[${itemId}].childIds`, 'childIds')
-      items.push({
+      items.push(withIdentity({
         blocks: blocksFromChildIds(childIds, blockMap, options),
-      })
+      }, { id: itemId }))
     }
 
     return {
@@ -843,10 +917,10 @@ function chapterToJson(
 
     if (audioTabs.length) {
       const tabList: Array<Record<string, string>> = []
-      const tabDataMap: Record<string, unknown> = {}
+      const tabDataMap: Record<string, unknown> = Object.create(null)
 
       for (const tab of audioTabs) {
-        const tabId = factory.tabId()
+        const tabId = factory.reuse(tab, 'id', () => factory.tabId(), chapter)
         tabList.push({
           tabId,
           title: tab.title ?? '',
@@ -887,10 +961,10 @@ function chapterToJson(
 
   if (chapter.tabs.length) {
     const tabList: Array<Record<string, string>> = []
-    const tabDataMap: Record<string, unknown> = {}
+    const tabDataMap: Record<string, unknown> = Object.create(null)
 
     for (const tab of chapter.tabs) {
-      const tabId = factory.tabId()
+      const tabId = factory.reuse(tab, 'id', () => factory.tabId(), chapter)
       const tabDescriptor: Record<string, string> = {
         tabId,
         title: tab.title ?? '',
@@ -908,9 +982,7 @@ function chapterToJson(
         // Split the intro description inlines on `\n` so each line becomes
         // its own paragraph block — the wiki renders one block per line,
         // so a `\n` inside a single text run would be collapsed to a space.
-        const introBlocks = tab.intro.description.length
-          ? splitInlinesByNewline(tab.intro.description).map((line) => paragraph(line))
-          : []
+        const introBlocks = introDocumentBlocks(tab.intro, factory.preservesIds)
 
         tabPayload.intro = {
           name: tab.intro.name,
@@ -959,7 +1031,7 @@ function audioItemsToJson(
     title: entry.title,
     profile: entry.profile,
     resourceUrl: entry.resourceUrl,
-    ...(target === 'submit' ? { id: factory.audioId() } : {}),
+    ...(target === 'submit' ? { id: factory.reuse(entry, 'id', () => factory.audioId(), audios) } : {}),
   }))
 }
 
@@ -968,22 +1040,24 @@ function storeDocument(
   documentMap: Record<string, unknown>,
   factory: IdFactory
 ): string {
-  const documentId = factory.widgetId()
+  const documentId = factory.reuse(blocks, 'documentId', () => factory.widgetId(), 'documents')
   documentMap[documentId] = buildDocumentPayload(blocks, factory)
   return documentId
 }
 
 function buildDocumentPayload(blocks: Block[], factory: IdFactory): Record<string, unknown> {
   const blockIds: string[] = []
-  const blockMap: Record<string, unknown> = {}
+  const blockMap: Record<string, unknown> = Object.create(null)
 
+  factory.beginDocument(blocks)
+  const rootId = factory.reuse(blocks, 'id', () => 'document-id')
   for (const block of normalizeBlocks(blocks)) {
-    const blockId = appendBlock(block, blockMap, 'document-id', factory)
+    const blockId = appendBlock(block, blockMap, rootId, factory)
     blockIds.push(blockId)
   }
 
   return {
-    id: 'document-id',
+    id: rootId,
     blockIds,
     blockMap,
     authorMap: {},
@@ -998,7 +1072,7 @@ function appendBlock(
   factory: IdFactory
 ): string {
   if (isExternalVideo(block)) {
-    const blockId = block.videoId
+    const blockId = factory.preservesIds ? factory.fixedBlockId(block.videoId) : block.videoId
     blockMap[blockId] = {
       kind: 'externalVideo',
       id: blockId,
@@ -1006,7 +1080,7 @@ function appendBlock(
       externalVideo: {
         id: blockId,
         kind: block.videoKind,
-        elementId: factory.elementId(),
+        elementId: factory.reuse(block, 'elementId', () => factory.elementId(), 'elements'),
         type: 'external-video',
         children: [{ text: '' }],
       },
@@ -1014,7 +1088,7 @@ function appendBlock(
     return blockId
   }
 
-  const blockId = factory.blockId()
+  const blockId = factory.reuse(block, 'id', () => factory.blockId())
 
   if (isParagraph(block)) {
     blockMap[blockId] = {
@@ -1047,10 +1121,10 @@ function appendBlock(
 
   if (isList(block)) {
     const itemIds: string[] = []
-    const itemMap: Record<string, unknown> = {}
+    const itemMap: Record<string, unknown> = Object.create(null)
 
     for (const item of block.items) {
-      const itemId = factory.itemId()
+      const itemId = factory.reuse(item, 'id', () => factory.itemId(), block)
       itemIds.push(itemId)
       const childIds = normalizeBlocks(item.blocks).map((child) =>
         appendBlock(child, blockMap, itemId, factory)
@@ -1110,15 +1184,15 @@ function appendBlock(
 
   if (isComplexTable(block)) {
     validateComplexTableBlock(block)
-    const rowIds = Array.from({ length: block.rowCount }, () => factory.itemId())
-    const columnIds = Array.from({ length: block.columnCount }, () => factory.itemId())
+    const rowIds = Array.from({ length: block.rowCount }, (_, index) => factory.tableId(block, 'rowIds', index))
+    const columnIds = Array.from({ length: block.columnCount }, (_, index) => factory.tableId(block, 'columnIds', index))
 
-    const rowMap: Record<string, unknown> = {}
+    const rowMap: Record<string, unknown> = Object.create(null)
     for (const rowId of rowIds) {
       rowMap[rowId] = { id: rowId }
     }
 
-    const columnMap: Record<string, unknown> = {}
+    const columnMap: Record<string, unknown> = Object.create(null)
     for (let i = 0; i < columnIds.length; i += 1) {
       const columnId = columnIds[i]!
       columnMap[columnId] = {
@@ -1127,7 +1201,7 @@ function appendBlock(
       }
     }
 
-    const cellMap: Record<string, unknown> = {}
+    const cellMap: Record<string, unknown> = Object.create(null)
     for (const cell of [...block.cells].sort((a, b) => {
       if (a.rowIndex !== b.rowIndex) {
         return a.rowIndex - b.rowIndex
@@ -1173,6 +1247,16 @@ function appendBlock(
   }
 
   throw new EndfieldWikitextConversionError(`Unsupported block type '${(block as Block).blockType}'.`)
+}
+
+function introDocumentBlocks(intro: ImageIntro, useCached = false): Block[] {
+  const previous = identity(intro).introBlocks
+  if (useCached && previous) return previous
+  const blocks = intro.description.length
+    ? splitInlinesByNewline(intro.description).map((line) => paragraph(line))
+    : []
+  withIdentity(intro, { ...identity(intro), introBlocks: blocks })
+  return blocks
 }
 
 /**
