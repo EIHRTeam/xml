@@ -190,19 +190,31 @@ IDs are generated. Resource and business IDs retain their existing semantics.
 XML stays unchanged and carries no hidden identity attributes. Empty blocks
 removed by existing normalization do not consume other blocks' identities.
 This is not a lossless JSON round trip: formatting and existing normalization
-of non-ID fields are unchanged. Without `referenceJson`, IDs are generated as
-before. Editors should cache successful conversions and use their latest
+of non-ID fields still apply. Without `referenceJson`, IDs are generated
+deterministically from the input model. The same input and options produce
+identical output, including newly allocated IDs. Editors should cache successful
+conversions and use their latest
 successful JSON as the next reference so newly inserted components keep their
 IDs between diff, format conversion and submission. Failed conversions must
 not replace that reference.
 
 ### Explicit line breaks
 
-Text content containing LF, CRLF or CR is rendered with one closed `<br></br>`
-per newline, including consecutive and leading/trailing breaks. The parser
-accepts both `<br></br>` and `<br/>` and restores inline `\n` characters, keeping
-the containing paragraph and its component identity intact. Formatting wrappers,
-links, pronunciations, table content, image descriptions and audio profiles
-preserve these explicit breaks. Existing XML layout newlines continue to separate
-paragraphs. Literal text such as `<br>` is escaped normally; a `br` element with
-content is rejected.
+Paragraph newlines (LF, CRLF, CR, `<br></br>` or `<br/>`) are paragraph
+boundaries: each line becomes a separate wiki text block. Interior empty lines
+become empty body blocks with left alignment; leading and trailing empty lines
+are trimmed. Text at paragraph boundaries is trimmed to match XML layout
+whitespace handling. Nonempty lines retain the original paragraph kind, alignment and
+inline formatting. Links and pronunciations split across lines as well.
+This applies inside quotes, list items and table cells. Multiple paragraphs in
+one list item stay inside one `<li>`.
+
+XML renders these paragraphs with layout newlines, preserving interior blank
+lines without emitting inline `br` elements. When using `referenceJson`, the
+first split line can reuse the original block ID; other lines reuse matching
+reference IDs or receive deterministic new IDs.
+
+Audio profiles and image descriptions retain string newline semantics and use
+closed `<br></br>` elements in XML. Image-intro descriptions continue to store
+one block per line in JSON. Literal text such as `<br>` is escaped normally;
+a `br` element with content is rejected.

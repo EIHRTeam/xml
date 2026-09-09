@@ -346,7 +346,7 @@ export function prepareIdReuse(
     if (ids.elementId) selected.elementId = ids.elementId
     withIdentity(entry.object, selected)
   }
-  const factory = new IdFactory(reserved, true)
+  const factory = new IdFactory(reserved, true, JSON.stringify(document))
   for (const table of next.tables) {
     withIdentity(table.block, {
       ...identity(table.block),

@@ -295,19 +295,56 @@ export function mergeAdjacentTextRuns(inlines: Inline[]): Inline[] {
   return merged
 }
 
+/** Split textual inlines into lines without trimming boundaries (imgIntro needs them). */
+export function splitInlinesByNewline(inlines: Inline[]): Inline[][] {
+  const lines: Inline[][] = [[]]
+  for (const inline of inlines) {
+    if (inline.inlineType === 'entry') {
+      lines[lines.length - 1]!.push(inline)
+      continue
+    }
+    const value = inline.inlineType === 'pronunciation' ? inline.content : inline.text
+    const parts = value.replace(/\r\n|\r/g, '\n').split('\n')
+    for (const [index, part] of parts.entries()) {
+      if (index > 0) lines.push([])
+      if (!part) continue
+      lines[lines.length - 1]!.push(inline.inlineType === 'pronunciation'
+        ? { ...inline, content: part }
+        : { ...inline, text: part })
+    }
+  }
+  return lines
+}
+
 export function normalizeBlocks(blocks: Block[]): Block[] {
   const normalized: Block[] = []
 
   for (const block of blocks) {
     if (isParagraph(block)) {
-      const nextParagraph = paragraph(mergeAdjacentTextRuns(block.inlines), block.kind, block.align)
-      if (nextParagraph.kind === 'body' && nextParagraph.align !== 'left' && !nextParagraph.inlines.length) {
-        continue
+      const lines = splitInlinesByNewline(block.inlines).map(mergeAdjacentTextRuns)
+      // Match XML layout-line whitespace normalization, including imgIntro blocks.
+      for (const line of lines) {
+        while (line[0] && isTextRun(line[0])) {
+          line[0].text = line[0].text.trimStart()
+          if (line[0].text) break
+          line.shift()
+        }
+        while (line.length && isTextRun(line[line.length - 1]!)) {
+          const last = line[line.length - 1] as TextRunInline
+          last.text = last.text.trimEnd()
+          if (last.text) break
+          line.pop()
+        }
       }
-      if (nextParagraph.kind !== 'body' && !nextParagraph.inlines.length) {
-        continue
+      if (lines.length > 1) {
+        while (lines.length && !lines[0]!.length) lines.shift()
+        while (lines.length && !lines[lines.length - 1]!.length) lines.pop()
       }
-      normalized.push(copyIdentity(block, nextParagraph))
+      for (const [index, line] of lines.entries()) {
+        // Empty lines are always ordinary, left-aligned body blocks.
+        const next = line.length ? paragraph(line, block.kind, block.align) : paragraph()
+        normalized.push(index === 0 ? copyIdentity(block, next) : next)
+      }
       continue
     }
 
@@ -380,16 +417,7 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
     normalized.pop()
   }
 
-  const collapsed: Block[] = []
-  for (const block of normalized) {
-    const last = collapsed[collapsed.length - 1]
-    if (last && isEmptyParagraph(last) && isEmptyParagraph(block)) {
-      continue
-    }
-    collapsed.push(block)
-  }
-
-  return copyIdentity(blocks, collapsed)
+  return copyIdentity(blocks, normalized)
 }
 
 export function blocksToPlainText(blocks: Block[]): string {

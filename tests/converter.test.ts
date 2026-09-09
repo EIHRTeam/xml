@@ -170,7 +170,7 @@ describe('@eihrteam/xml conversion', () => {
     expect(parseWikiJson(renderedItem)).toEqual(parseWikiJson(infoItem))
   })
 
-  test('renders every wiki JSON list content block as a li element', () => {
+  test('preserves multiple content blocks inside one wiki list item', () => {
     const payload = structuredClone(infoRoot) as Record<string, any>
     const overviewDoc = payload.data.item.document.documentMap['doc-overview']
     const blockMap = {
@@ -261,16 +261,17 @@ describe('@eihrteam/xml conversion', () => {
     ) as Array<typeof list>
     const items = directElementChildren.filter((node) => node.tagName === 'li')
 
-    expect(directElementChildren.map((node) => node.tagName)).toEqual(['li', 'li', 'li', 'li'])
-    expect(items.map((node) => node.textContent)).toEqual([
+    expect(directElementChildren.map((node) => node.tagName)).toEqual(['li'])
+    expect(items[0]!.textContent!.trim().split(/\n\s*/)).toEqual([
       '枢纽区',
       '待建设区极其容易获取。',
       '相实的采集点有概率会被替换为',
       '的采集点。',
     ])
-    expect(items[1]!.getElementsByTagName('b')).toHaveLength(1)
-    expect(items[1]!.getElementsByTagName('color')[0]!.getAttribute('value')).toBe('r_5')
-    expect(items[3]!.getElementsByTagName('entry')[0]!.getAttribute('id')).toBe('43')
+    expect(items[0]!.getElementsByTagName('b')).toHaveLength(1)
+    expect(items[0]!.getElementsByTagName('color')[0]!.getAttribute('value')).toBe('r_5')
+    expect(items[0]!.getElementsByTagName('entry')[0]!.getAttribute('id')).toBe('43')
+    expect(parseXml(xml)).toEqual(parseWikiJson(payload))
   })
 
   test('converts wiki JSON entries to XML as a batch', () => {

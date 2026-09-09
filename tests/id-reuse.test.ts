@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, test, vi } from 'vitest'
+import { IdFactory } from '../src/ids.js'
 import {
   parseSubmitJson,
   parseXml,
@@ -292,6 +293,7 @@ describe('reference JSON identities', () => {
         model.chapterGroups[0]!.chapters[0]!.content.push(p('new'))
       })
       expect(doc(output.item).blockIds[1]).not.toBe(discarded)
+      expect(new IdFactory(new Set([discarded])).blockId()).not.toBe(discarded)
       expect(random.mock.calls.length).toBeGreaterThanOrEqual(2)
       assertReferences(output.item)
     } finally {
@@ -409,4 +411,14 @@ describe('reference JSON identities', () => {
     expect(after.cellMap[unchanged]).toEqual(before.table.cellMap[unchanged])
     assertReferences(output.item)
   })
+})
+
+
+test('deterministic ID generation skips reserved candidates and preserves the alphabet', () => {
+  const first = new IdFactory(new Set(), false, 'same input').blockId()
+  const reserved = new Set([first])
+  const second = new IdFactory(reserved, false, 'same input').blockId()
+  expect(second).not.toBe(first)
+  expect(second).toMatch(/^[a-zA-Z0-9]{12}$/)
+  expect(new IdFactory(new Set([first]), false, 'same input').blockId()).toBe(second)
 })

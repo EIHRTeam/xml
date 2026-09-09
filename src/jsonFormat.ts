@@ -36,6 +36,7 @@ import {
   isRecord,
   isTextRun,
   normalizeBlocks,
+  splitInlinesByNewline,
   paragraph,
   textRun,
   validateComplexTableBlock,
@@ -292,7 +293,7 @@ function buildWikiJsonObject(
   options: RenderWikiJsonOptions,
   target: JsonRenderTarget,
 ) {
-  let factory = new IdFactory()
+  let factory = new IdFactory(new Set(), false, JSON.stringify(document))
   if (options.referenceJson !== undefined) {
     const parsed = ensureMapping(parseJsonInput(options.referenceJson), 'referenceJson')
     const reference = isRecord(parsed.item)
@@ -1257,43 +1258,6 @@ function introDocumentBlocks(intro: ImageIntro, useCached = false): Block[] {
     : []
   withIdentity(intro, { ...identity(intro), introBlocks: blocks })
   return blocks
-}
-
-/**
- * Split a sequence of inlines on `\n` boundaries inside text runs, producing
- * one Inline[] per line. Used for imgIntro descriptions where each line must
- * become its own block so the wiki renders line breaks correctly.
- */
-function splitInlinesByNewline(inlines: Inline[]): Inline[][] {
-  const lines: Inline[][] = [[]]
-  for (const inline of inlines) {
-    if (!isTextRun(inline)) {
-      lines[lines.length - 1]!.push(inline)
-      continue
-    }
-
-    const normalized = inline.text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-    const parts = normalized.split('\n')
-    for (let i = 0; i < parts.length; i++) {
-      if (i > 0) {
-        lines.push([])
-      }
-      const part = parts[i]!
-      // Drop empty text that comes from leading/trailing newlines —
-      // those just separate lines and shouldn't produce empty text runs.
-      if (part === '') {
-        continue
-      }
-      lines[lines.length - 1]!.push(textRun(part, {
-        bold: inline.bold,
-        italic: inline.italic,
-        underline: inline.underline,
-        strike: inline.strike,
-        color: inline.color,
-      }))
-    }
-  }
-  return lines
 }
 
 function inlineToJson(inline: Inline): Record<string, unknown> {

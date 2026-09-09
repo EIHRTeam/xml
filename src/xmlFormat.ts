@@ -400,6 +400,7 @@ function parseMixedBlocks(
 
   const blocks: Block[] = []
   let currentInlines: Inline[] | null = null
+  let lineHasBlock = false
 
   const ensureCurrent = () => {
     if (!currentInlines) {
@@ -408,11 +409,8 @@ function parseMixedBlocks(
     return currentInlines
   }
 
-  const flushCurrent = (addEmpty = false) => {
+  const flushCurrent = () => {
     if (!currentInlines) {
-      if (addEmpty && blocks.length > 0 && !isEmptyBodyParagraph(blocks[blocks.length - 1]!)) {
-        blocks.push(paragraph())
-      }
       return
     }
 
@@ -425,55 +423,16 @@ function parseMixedBlocks(
       return
     }
 
-    const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-    if (!normalized.trim()) {
-      const newlineCount = (normalized.match(/\n/g) || []).length
-      if (newlineCount >= 1 && currentInlines) {
-        flushCurrent()
-      }
-      if (newlineCount > 1) {
-        flushCurrent(true)
-      }
-      return
-    }
-
-    const parts = normalized.split('\n')
-    let seenContent = false
-    let blankRun = 0
-
+    const parts = text.replace(/\r\n|\r/g, '\n').split('\n')
     for (const [index, part] of parts.entries()) {
-      const stripped = part.trim()
-      if (stripped) {
-        if (!seenContent && currentInlines) {
-          if (blankRun >= 1) {
-            flushCurrent()
-          }
-          if (blankRun > 1) {
-            flushCurrent(true)
-          }
-        }
-
-        if (seenContent && blankRun > 1) {
-          flushCurrent(true)
-        }
-
-        ensureCurrent().push(textRun(stripped))
-        // Only close the paragraph when a newline actually follows this text
-        // (i.e. it is not the final part). Otherwise a following inline sibling
-        // on the same line — e.g. `完成主线任务<entry/>` — would be orphaned into
-        // its own paragraph instead of staying inline with the text.
-        if (index < parts.length - 1) {
-          flushCurrent()
-        }
-        seenContent = true
-        blankRun = 0
-      } else if (seenContent || currentInlines) {
-        blankRun += 1
+      if (index > 0) {
+        // One layout newline closes a line; each additional newline is an empty line.
+        if (currentInlines) flushCurrent()
+        else if (!lineHasBlock) blocks.push(paragraph())
+        lineHasBlock = false
       }
-    }
-
-    if (blankRun > 1) {
-      flushCurrent(true)
+      const stripped = part.trim()
+      if (stripped) ensureCurrent().push(textRun(stripped))
     }
   }
 
@@ -493,6 +452,7 @@ function parseMixedBlocks(
     if (specialHandlers[tag]) {
       flushCurrent()
       specialHandlers[tag]!(child)
+      lineHasBlock = true
       continue
     }
 
@@ -509,6 +469,7 @@ function parseMixedBlocks(
           allowTables,
         })
       )
+      lineHasBlock = true
       continue
     }
 
@@ -1375,7 +1336,7 @@ function renderComplexTable(block: ComplexTableBlock, indent: number) {
   return lines
 }
 
-/** XML layout newlines remain paragraph separators; explicit breaks stay inline. */
+/** String-valued audio profiles and image descriptions retain explicit breaks. */
 function renderTextWithBreaks(value: string): string {
   return escapeXmlText(value).replace(/\r\n|\r|\n/g, '<br></br>')
 }
@@ -1456,30 +1417,14 @@ function renderListItem(item: ListItem, indent: number): string[] {
     return [`${' '.repeat(indent)}<li></li>`]
   }
 
-  const lines: string[] = []
-  for (const block of blocks) {
-    if (isList(block)) {
-      lines.push(...renderBlock(block, indent))
-      continue
-    }
-
-    lines.push(...renderListItemContentBlock(block, indent))
+  if (blocks.length === 1 && isParagraph(blocks[0]!) && blocks[0]!.kind === 'body' && blocks[0]!.align === 'left') {
+    return [`${' '.repeat(indent)}<li>${renderInlines(blocks[0]!.inlines)}</li>`]
   }
-  return lines
-}
-
-function renderListItemContentBlock(block: Block, indent: number): string[] {
-  const pad = ' '.repeat(indent)
-  if (isParagraph(block) && block.kind === 'body' && block.align === 'left') {
-    return [
-      block.inlines.length ? `${pad}<li>${renderInlines(block.inlines)}</li>` : `${pad}<li></li>`,
-    ]
-  }
-
-  const lines = [`${pad}<li>`]
-  lines.push(...renderBlock(block, indent + 4))
-  lines.push(`${pad}</li>`)
-  return lines
+  return [
+    `${' '.repeat(indent)}<li>`,
+    ...renderBlocks(blocks, indent + 4),
+    `${' '.repeat(indent)}</li>`,
+  ]
 }
 
 function openContainer(tag: string, attrs: Record<string, string>, indent: number) {
@@ -1566,10 +1511,6 @@ function formatWidth(width: number) {
     return text.slice(0, -2)
   }
   return text
-}
-
-function isEmptyBodyParagraph(block: Block) {
-  return isParagraph(block) && block.kind === 'body' && block.inlines.length === 0
 }
 
 function escapeXmlText(value: string) {
