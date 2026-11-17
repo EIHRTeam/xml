@@ -17,6 +17,8 @@ export type {
   ComplexTableBlock,
   ComplexTableCell,
   DocumentModel,
+  EmojiInline,
+  AnnotationInline,
   EntryRefInline,
   ExternalVideoBlock,
   HorizontalLineBlock,

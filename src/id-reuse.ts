@@ -66,7 +66,17 @@ function tree(
   function blockNode(block: Block): Node {
     switch (block.blockType) {
       case 'paragraph':
-        return node(block, 'paragraph', [block.kind, block.align, block.inlines])
+        return node(block, 'paragraph', [
+          block.kind,
+          block.align,
+          block.inlines.map((inline) => inline.inlineType === 'annotation'
+            ? { inlineType: inline.inlineType, title: inline.title }
+            : inline),
+        ], {
+          annotations: block.inlines
+            .filter((inline) => inline.inlineType === 'annotation')
+            .map((inline) => node(inline, 'annotation', inline.title, { blocks: blocks(inline.content) }, [], false)),
+        })
       case 'quote':
         return node(block, 'quote', null, { blocks: blocks(block.children) })
       case 'list':
