@@ -148,7 +148,7 @@ interface WikiJsonToXmlBatchResult<TMeta = unknown> {
 
 `gameIcon` 对应行内标签 `<emoji id="emoji_sns_emoiji_001"></emoji>`，读取也接受自闭合形式。
 `id` 必须非空，支持任意图标 ID。标签仅接受 `id` 属性，内部允许排版空白。
-JSON 中缺省的 `gameIcon.text` 按空串处理，非空时报错，输出固定为 `text: ""`。
+JSON 中缺省的 `gameIcon.text` 按空串处理，显式 `null`、其他类型或非空字符串均报错，输出固定为 `text: ""`。
 
 `annotation` 对应行内标签 `<annotation>`，内部必须各有一个 `<title>` 和 `<content>`，两者均可为空。
 `title` 保存 `annotation.inlineElements` 的富文本和表情，`content` 保存 `annotation.childIds` 引用的详情块。
@@ -164,10 +164,12 @@ JSON 中缺省的 `gameIcon.text` 按空串处理，非空时报错，输出固�
 表格省略 `widths` 时从章节尺寸计算列宽，无章节尺寸的表格须显式指定 `widths`。
 注释标题与详情内均禁止再次嵌套注释。文字样式分别在标题、详情内部表达。
 详情中的换行独立处理，外层段落中的注释作为完整行内单元保留。
+标题、对齐和行内格式容器中的排版换行与普通空白序列继续折叠，组件相邻文字之间保留必要的单个空格。显式 `<br>` 保留换行语义。
 两个标签适用于简介、正文、Tab 和图片简介，链接等仅保存纯文本的元素内禁止放入这两个标签。
 
 输出 JSON 时，详情块保存在所属文档的 `blockMap`，由注释 `childIds` 引用，直属块的 `parentId`
 指向所属段落。`referenceJson` 支持复用详情块及其内部组件的 ID，图标 ID 始终保留。
+读取时以 `childIds` 为准，兼容原始样本中详情块 `parentId` 与所属段落不匹配的历史值。
 公开 `Inline` 类型新增 `EmojiInline` 和 `AnnotationInline`。纯文本提取使用注释标题，表情不产生文字。
 无效或循环块引用、非法标签内容及嵌套注释均抛出转换错误。`dialog` 对话组件目前仍会报不支持错误。
 

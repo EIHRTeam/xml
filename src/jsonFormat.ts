@@ -843,7 +843,7 @@ function inlinesFromJson(
       const icon = requireMapping(entry, 'inline.gameIcon', 'gameIcon')
       const id = requireString(icon, 'gameIcon.id', 'id')
       if (!id.trim()) throw new EndfieldWikitextConversionError('Emoji must include a nonempty id.')
-      if (requireString(icon, 'gameIcon.text', 'text', '') !== '') {
+      if (Object.hasOwn(icon, 'text') && icon.text !== '') {
         throw new EndfieldWikitextConversionError('gameIcon.text must be empty.')
       }
       inlines.push({ inlineType: 'emoji', id })

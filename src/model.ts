@@ -545,6 +545,10 @@ export function validateDocumentInlines(document: DocumentModel): void {
     }
   }
   function visitInlines(inlines: Inline[], inAnnotation: boolean, allowTables: boolean): void {
+    if (active.has(inlines)) {
+      throw new XmlWikiConversionError('Cyclic inline reference.')
+    }
+    active.add(inlines)
     for (const inline of inlines) {
       if (inline.inlineType === 'emoji' && (typeof inline.id !== 'string' || !inline.id.trim())) {
         throw new XmlWikiConversionError('Emoji must include a nonempty id.')
@@ -555,6 +559,7 @@ export function validateDocumentInlines(document: DocumentModel): void {
         visitBlocks(inline.content, true, allowTables)
       }
     }
+    active.delete(inlines)
   }
   visitBlocks(document.description, false, true)
   for (const group of document.chapterGroups) {

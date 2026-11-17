@@ -803,7 +803,10 @@ interface InlineParseState {
   strike?: boolean
   color?: string | null
   preserveNewlines?: boolean
+  /** Annotation titles retain their own text independently of outer layout. */
   preserveWhitespace?: boolean
+  /** Keep collapsed spaces at inline joins without preserving layout newlines. */
+  preserveBoundarySpaces?: boolean
 }
 
 function parseInlineContainer(
@@ -816,7 +819,8 @@ function parseInlineContainer(
   const strike = state?.strike ?? false
   const color = state?.color ?? null
   const preserveNewlines = state?.preserveNewlines ?? false
-  const preserveWhitespace = state?.preserveWhitespace ?? Boolean(
+  const preserveWhitespace = state?.preserveWhitespace ?? false
+  const preserveBoundarySpaces = state?.preserveBoundarySpaces ?? Boolean(
     element.getElementsByTagName('emoji').length || element.getElementsByTagName('annotation').length
   )
 
@@ -832,6 +836,7 @@ function parseInlineContainer(
         color,
         preserveNewlines,
         preserveWhitespace,
+        preserveBoundarySpaces,
       })
       continue
     }
@@ -849,6 +854,7 @@ function parseInlineContainer(
         color,
         preserveNewlines,
         preserveWhitespace,
+        preserveBoundarySpaces,
       })
     )
   }
@@ -866,7 +872,8 @@ function parseInlineElement(
   const strike = state?.strike ?? false
   const color = state?.color ?? null
   const preserveNewlines = state?.preserveNewlines ?? false
-  const preserveWhitespace = state?.preserveWhitespace ?? Boolean(
+  const preserveWhitespace = state?.preserveWhitespace ?? false
+  const preserveBoundarySpaces = state?.preserveBoundarySpaces ?? Boolean(
     element.getElementsByTagName('emoji').length || element.getElementsByTagName('annotation').length
   )
 
@@ -892,19 +899,19 @@ function parseInlineElement(
   }
 
   if (element.tagName === 'b') {
-    return parseInlineContainer(element, { bold: true, italic, underline, strike, color, preserveNewlines, preserveWhitespace })
+    return parseInlineContainer(element, { bold: true, italic, underline, strike, color, preserveNewlines, preserveWhitespace, preserveBoundarySpaces })
   }
 
   if (element.tagName === 'i') {
-    return parseInlineContainer(element, { bold, italic: true, underline, strike, color, preserveNewlines, preserveWhitespace })
+    return parseInlineContainer(element, { bold, italic: true, underline, strike, color, preserveNewlines, preserveWhitespace, preserveBoundarySpaces })
   }
 
   if (element.tagName === 'u') {
-    return parseInlineContainer(element, { bold, italic, underline: true, strike, color, preserveNewlines, preserveWhitespace })
+    return parseInlineContainer(element, { bold, italic, underline: true, strike, color, preserveNewlines, preserveWhitespace, preserveBoundarySpaces })
   }
 
   if (element.tagName === 's') {
-    return parseInlineContainer(element, { bold, italic, underline, strike: true, color, preserveNewlines, preserveWhitespace })
+    return parseInlineContainer(element, { bold, italic, underline, strike: true, color, preserveNewlines, preserveWhitespace, preserveBoundarySpaces })
   }
 
   if (element.tagName === 'color') {
@@ -923,6 +930,7 @@ function parseInlineElement(
       color: colorValue,
       preserveNewlines,
       preserveWhitespace,
+      preserveBoundarySpaces,
     })
   }
 
@@ -1003,6 +1011,7 @@ function appendInlineText(
     color: string | null
     preserveNewlines?: boolean
     preserveWhitespace?: boolean
+    preserveBoundarySpaces?: boolean
   }
 ) {
   if (!text) {
@@ -1021,12 +1030,14 @@ function appendInlineText(
       .replace(/\r\n/g, '\n')
       .replace(/\r/g, '\n')
       .replace(/[^\S\n]+/g, ' ')
-      .replace(/^[^\S\n]+/, '')
-      .replace(/[^\S\n]+$/, '')
+    if (!state.preserveBoundarySpaces) {
+      collapsed = collapsed.replace(/^[^\S\n]+/, '').replace(/[^\S\n]+$/, '')
+    }
   } else {
     // Default path (headings, align blocks, inline formatting tags):
     // collapse all whitespace including newlines into a single space.
-    collapsed = text.replace(/\s+/g, ' ').trim()
+    collapsed = text.replace(/\s+/g, ' ')
+    if (!state.preserveBoundarySpaces) collapsed = collapsed.trim()
   }
 
   if (!collapsed) {
