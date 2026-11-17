@@ -144,6 +144,33 @@ interface WikiJsonToXmlBatchResult<TMeta = unknown> {
 
 接受的公开响应边界值：空章节标题、空 `content` / `intro.description` 文档引用、`brief.description: null`、图片 URL 无法反推 id/format 时由 XML 显式保存 `<id>` 与 `<format>`、低于 100px 的表格列宽、复杂表格单元格覆盖关系。
 
+### 表情与注释
+
+`gameIcon` 对应行内标签 `<emoji id="emoji_sns_emoiji_001"></emoji>`，读取也接受自闭合形式。
+`id` 必须非空，支持任意图标 ID。标签仅接受 `id` 属性，内部允许排版空白。
+JSON 中缺省的 `gameIcon.text` 按空串处理，非空时报错，输出固定为 `text: ""`。
+
+`annotation` 对应行内标签 `<annotation>`，内部必须各有一个 `<title>` 和 `<content>`，两者均可为空。
+`title` 保存 `annotation.inlineElements` 的富文本和表情，`content` 保存 `annotation.childIds` 引用的详情块。
+
+```xml
+正文中的<annotation><title>标记<b>文字</b><emoji id="emoji_sns_emoiji_001"></emoji></title><content>
+    详情文字
+    <quote>详情引用</quote>
+</content></annotation>及后续文字
+```
+
+注释详情支持现有块语法，表格单元格内的注释详情仍禁止嵌套表格。
+表格省略 `widths` 时从章节尺寸计算列宽，无章节尺寸的表格须显式指定 `widths`。
+注释标题与详情内均禁止再次嵌套注释。文字样式分别在标题、详情内部表达。
+详情中的换行独立处理，外层段落中的注释作为完整行内单元保留。
+两个标签适用于简介、正文、Tab 和图片简介，链接等仅保存纯文本的元素内禁止放入这两个标签。
+
+输出 JSON 时，详情块保存在所属文档的 `blockMap`，由注释 `childIds` 引用，直属块的 `parentId`
+指向所属段落。`referenceJson` 支持复用详情块及其内部组件的 ID，图标 ID 始终保留。
+公开 `Inline` 类型新增 `EmojiInline` 和 `AnnotationInline`。纯文本提取使用注释标题，表情不产生文字。
+无效或循环块引用、非法标签内容及嵌套注释均抛出转换错误。`dialog` 对话组件目前仍会报不支持错误。
+
 ## 运行时
 
 - Node.js 20 及以上。

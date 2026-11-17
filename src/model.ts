@@ -45,7 +45,18 @@ export interface EntryRefInline {
   count: string
 }
 
-export type Inline = TextRunInline | PronunciationInline | LinkInline | EntryRefInline
+export interface EmojiInline {
+  inlineType: 'emoji'
+  id: string
+}
+
+export interface AnnotationInline {
+  inlineType: 'annotation'
+  title: Inline[]
+  content: Block[]
+}
+
+export type Inline = TextRunInline | PronunciationInline | LinkInline | EntryRefInline | EmojiInline | AnnotationInline
 
 export interface ParagraphBlock {
   blockType: 'paragraph'
@@ -262,6 +273,9 @@ export function inlineHasContent(inline: Inline): boolean {
   if (inline.inlineType === 'link') {
     return Boolean(inline.text || inline.href)
   }
+  if (inline.inlineType === 'emoji' || inline.inlineType === 'annotation') {
+    return true
+  }
   return Boolean(inline.targetId)
 }
 
@@ -299,7 +313,7 @@ export function mergeAdjacentTextRuns(inlines: Inline[]): Inline[] {
 export function splitInlinesByNewline(inlines: Inline[]): Inline[][] {
   const lines: Inline[][] = [[]]
   for (const inline of inlines) {
-    if (inline.inlineType === 'entry') {
+    if (inline.inlineType === 'entry' || inline.inlineType === 'emoji' || inline.inlineType === 'annotation') {
       lines[lines.length - 1]!.push(inline)
       continue
     }
@@ -321,7 +335,15 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
 
   for (const block of blocks) {
     if (isParagraph(block)) {
-      const lines = splitInlinesByNewline(block.inlines).map(mergeAdjacentTextRuns)
+      const inlines = block.inlines.map((inline) => {
+        if (inline.inlineType !== 'annotation') return inline
+        return copyIdentity(inline, {
+          ...inline,
+          title: mergeAdjacentTextRuns(inline.title.map((entry) => ({ ...entry }))),
+          content: normalizeBlocks(inline.content),
+        })
+      })
+      const lines = splitInlinesByNewline(inlines).map(mergeAdjacentTextRuns)
       // Match XML layout-line whitespace normalization, including imgIntro blocks.
       for (const line of lines) {
         while (line[0] && isTextRun(line[0])) {
@@ -462,6 +484,8 @@ export function inlinesToPlainText(inlines: Inline[]): string {
       parts.push(inline.content)
     } else if (inline.inlineType === 'link') {
       parts.push(inline.text)
+    } else if (inline.inlineType === 'annotation') {
+      parts.push(inlinesToPlainText(inline.title))
     } else {
       parts.push('')
     }
@@ -471,6 +495,12 @@ export function inlinesToPlainText(inlines: Inline[]): string {
 
 export function* iterImageBlocks(blocks: Block[]): Generator<ImageBlock> {
   for (const block of blocks) {
+    if (isParagraph(block)) {
+      for (const inline of block.inlines) {
+        if (inline.inlineType === 'annotation') yield* iterImageBlocks(inline.content)
+      }
+      continue
+    }
     if (isImage(block)) {
       yield block
       continue
@@ -491,6 +521,48 @@ export function* iterImageBlocks(blocks: Block[]): Generator<ImageBlock> {
     if (isComplexTable(block)) {
       for (const cell of block.cells) {
         yield* iterImageBlocks(cell.blocks)
+      }
+    }
+  }
+}
+
+/** Validate new inline components before normalization or ID seeding can recurse. */
+export function validateDocumentInlines(document: DocumentModel): void {
+  const active = new Set<object>()
+  function visitBlocks(blocks: Block[], inAnnotation: boolean, allowTables: boolean): void {
+    for (const block of blocks) {
+      if (active.has(block)) throw new XmlWikiConversionError('Cyclic block reference.')
+      active.add(block)
+      if (isParagraph(block)) visitInlines(block.inlines, inAnnotation, allowTables)
+      else if (isQuote(block)) visitBlocks(block.children, inAnnotation, allowTables)
+      else if (isList(block)) {
+        for (const item of block.items) visitBlocks(item.blocks, inAnnotation, allowTables)
+      } else if (isComplexTable(block)) {
+        if (!allowTables) throw new XmlWikiConversionError('Nested tables are not supported inside table cells.')
+        for (const cell of block.cells) visitBlocks(cell.blocks, inAnnotation, false)
+      }
+      active.delete(block)
+    }
+  }
+  function visitInlines(inlines: Inline[], inAnnotation: boolean, allowTables: boolean): void {
+    for (const inline of inlines) {
+      if (inline.inlineType === 'emoji' && (typeof inline.id !== 'string' || !inline.id.trim())) {
+        throw new XmlWikiConversionError('Emoji must include a nonempty id.')
+      }
+      if (inline.inlineType === 'annotation') {
+        if (inAnnotation) throw new XmlWikiConversionError('Nested annotations are not supported.')
+        visitInlines(inline.title, true, allowTables)
+        visitBlocks(inline.content, true, allowTables)
+      }
+    }
+  }
+  visitBlocks(document.description, false, true)
+  for (const group of document.chapterGroups) {
+    for (const chapter of group.chapters) {
+      visitBlocks(chapter.content, false, true)
+      for (const tab of chapter.tabs) {
+        visitBlocks(tab.content, false, true)
+        if (tab.intro) visitInlines(tab.intro.description, false, true)
       }
     }
   }

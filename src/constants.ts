@@ -17,6 +17,8 @@ export const INLINE_TAGS: ReadonlySet<string> = new Set([
   'pron',
   'a',
   'entry',
+  'emoji',
+  'annotation',
   'br',
 ])
 export const BASE_BLOCK_TAGS: ReadonlySet<string> = new Set([

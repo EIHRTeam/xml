@@ -1,0 +1,3214 @@
+{
+  "item": {
+    "itemId": "2897",
+    "document": {
+      "documentMap": {
+        "5BIQfFqR": {
+          "id": "6TA8ujyZkVE8",
+          "blockIds": [
+            "3D5YrCno9TRY"
+          ],
+          "blockMap": {
+            "3D5YrCno9TRY": {
+              "id": "3D5YrCno9TRY",
+              "parentId": "6TA8ujyZkVE8",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "我方对话-1（分支2） 上接对方对话-4 不可附图，强制我方开头"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            }
+          },
+          "authorMap": {},
+          "version": "1.0.0"
+        },
+        "EGE6bAWv": {
+          "id": "KqdYD5msB7Vw",
+          "blockIds": [
+            "ethmlH7BOapt"
+          ],
+          "blockMap": {
+            "ethmlH7BOapt": {
+              "id": "ethmlH7BOapt",
+              "parentId": "KqdYD5msB7Vw",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "我方对话-2 对话文本123"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            }
+          },
+          "authorMap": {},
+          "version": "1.0.0"
+        },
+        "EQStOVtw": {
+          "id": "wRHsXFth36ok",
+          "blockIds": [
+            "ethmlH7BOapt"
+          ],
+          "blockMap": {
+            "ethmlH7BOapt": {
+              "id": "ethmlH7BOapt",
+              "parentId": "wRHsXFth36ok",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "对方对话-2 对话文本123 下接对方对话-3"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            }
+          },
+          "authorMap": {},
+          "version": "1.0.0"
+        },
+        "FQaFnGAv": {
+          "id": "wD1mErjdp4jo",
+          "blockIds": [
+            "ethmlH7BOapt"
+          ],
+          "blockMap": {
+            "ethmlH7BOapt": {
+              "id": "ethmlH7BOapt",
+              "parentId": "wD1mErjdp4jo",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "对方对话-3 对话文本123 下接我方对话-1"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            }
+          },
+          "authorMap": {},
+          "version": "1.0.0"
+        },
+        "NuuNMpCb": {
+          "id": "qDKj6yKGtjuh",
+          "blockIds": [
+            "vHwWeMzfhXGf",
+            "H0mZyHp8VyN0",
+            "xmxxL9r0B9lF",
+            "WExpAR4EvmNz",
+            "UowTNziY2edt"
+          ],
+          "blockMap": {
+            "AQefStwD7hV9": {
+              "id": "AQefStwD7hV9",
+              "parentId": "Vad4sVKyBJtJ",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "详情："
+                    }
+                  },
+                  {
+                    "bold": true,
+                    "kind": "text",
+                    "text": {
+                      "text": "加粗"
+                    }
+                  },
+                  {
+                    "italic": true,
+                    "kind": "text",
+                    "text": {
+                      "text": "斜体"
+                    }
+                  },
+                  {
+                    "underline": true,
+                    "kind": "text",
+                    "text": {
+                      "text": "下划线"
+                    }
+                  },
+                  {
+                    "strikeThrough": true,
+                    "kind": "text",
+                    "text": {
+                      "text": "删除线"
+                    }
+                  },
+                  {
+                    "color": "light_function_red",
+                    "kind": "text",
+                    "text": {
+                      "text": "红色"
+                    }
+                  },
+                  {
+                    "kind": "pronunciation",
+                    "pronunciation": {
+                      "content": "注音"
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "（"
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_001",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__cryo_infliction",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "表情）"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            },
+            "H0mZyHp8VyN0": {
+              "id": "H0mZyHp8VyN0",
+              "parentId": "qDKj6yKGtjuh",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "ln2 表情測試："
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            },
+            "UowTNziY2edt": {
+              "id": "UowTNziY2edt",
+              "parentId": "qDKj6yKGtjuh",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "ln5 "
+                    }
+                  },
+                  {
+                    "kind": "annotation",
+                    "annotation": {
+                      "inlineElements": [
+                        {
+                          "kind": "text",
+                          "text": {
+                            "text": "標題："
+                          }
+                        },
+                        {
+                          "bold": true,
+                          "kind": "text",
+                          "text": {
+                            "text": "加粗"
+                          }
+                        },
+                        {
+                          "italic": true,
+                          "kind": "text",
+                          "text": {
+                            "text": "斜体"
+                          }
+                        },
+                        {
+                          "underline": true,
+                          "kind": "text",
+                          "text": {
+                            "text": "下划线"
+                          }
+                        },
+                        {
+                          "strikeThrough": true,
+                          "kind": "text",
+                          "text": {
+                            "text": "删除线"
+                          }
+                        },
+                        {
+                          "color": "light_function_red",
+                          "kind": "text",
+                          "text": {
+                            "text": "红色"
+                          }
+                        },
+                        {
+                          "kind": "pronunciation",
+                          "pronunciation": {
+                            "content": "注音"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "text": {
+                            "text": "        "
+                          }
+                        },
+                        {
+                          "kind": "link",
+                          "link": {
+                            "link": "https://eihrteam.org",
+                            "text": "链接"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "text": {
+                            "text": "（"
+                          }
+                        },
+                        {
+                          "kind": "gameIcon",
+                          "gameIcon": {
+                            "id": "emoji_sns_emoiji_001",
+                            "text": ""
+                          }
+                        },
+                        {
+                          "kind": "gameIcon",
+                          "gameIcon": {
+                            "id": "combat_related__cryo_infliction",
+                            "text": ""
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "text": {
+                            "text": "表情）"
+                          }
+                        }
+                      ],
+                      "childIds": [
+                        "AQefStwD7hV9"
+                      ]
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            },
+            "WExpAR4EvmNz": {
+              "id": "WExpAR4EvmNz",
+              "parentId": "qDKj6yKGtjuh",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "ln4 戰鬥相關 "
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__cryo_infliction",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__solidification",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__cryo_susceptibility",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__cryo_amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__shatter",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__vulnerability",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__lift",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__knock_down",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__heat_infliction",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__combustion",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__heat_susceptibility",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__heat_amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__breach",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__crush",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__slow",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__haste",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__electric_infliction",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__electrification",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__electric_susceptibility",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__electric_amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__physical_susceptibility",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__physical_amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__weakness",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__nature_infliction",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__corrosion",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__nature_susceptibility",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__nature_amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__arts_susceptibility",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__arts_amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__protection",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__link",
+                      "text": ""
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            },
+            "vHwWeMzfhXGf": {
+              "id": "vHwWeMzfhXGf",
+              "parentId": "qDKj6yKGtjuh",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "ln1 此為正文部分 該條目僅供 XML 與自動化測試用，他組成員未經授權勿編輯、審核或上線"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            },
+            "xmxxL9r0B9lF": {
+              "id": "xmxxL9r0B9lF",
+              "parentId": "qDKj6yKGtjuh",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "ln3 emoji "
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_001",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_002",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_003",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_004",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_005",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_006",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_007",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_008",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_009",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_010",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_011",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_012",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_013",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_014",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_015",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_016",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_017",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_018",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_019",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_020",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_021",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_022",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_023",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_024",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_025",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_026",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_027",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_028",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_029",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_030",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_031",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_032",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_033",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_034",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_035",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_036",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_037",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_038",
+                      "text": ""
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            }
+          },
+          "authorMap": {},
+          "version": "1.0.0"
+        },
+        "aNza7vIL": {
+          "id": "DBHfDhu6b2rA",
+          "blockIds": [
+            "OB1P4J3bhCdx"
+          ],
+          "blockMap": {
+            "OB1P4J3bhCdx": {
+              "id": "OB1P4J3bhCdx",
+              "parentId": "DBHfDhu6b2rA",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "上接我方对话-1（分支2） 分支内对话强制我方开头且对方回信至少一条，并以对方结尾"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            }
+          },
+          "authorMap": {},
+          "version": "1.0.0"
+        },
+        "e9nHd6X6": {
+          "id": "KZTGYet4n5Ju",
+          "blockIds": [
+            "WMLyGbnpTYUo"
+          ],
+          "blockMap": {
+            "WMLyGbnpTYUo": {
+              "id": "WMLyGbnpTYUo",
+              "parentId": "KZTGYet4n5Ju",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "对方对话-4 上有分隔线 下接分支-2 对话内仅支持emoji格式 格式测试："
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_001",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__cryo_infliction",
+                      "text": ""
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            }
+          },
+          "authorMap": {},
+          "version": "1.0.0"
+        },
+        "fqBaddPs": {
+          "id": "eebL9882KcJe",
+          "blockIds": [
+            "vHwWeMzfhXGf",
+            "H0mZyHp8VyN0",
+            "xmxxL9r0B9lF",
+            "WExpAR4EvmNz",
+            "UowTNziY2edt"
+          ],
+          "blockMap": {
+            "AQefStwD7hV9": {
+              "id": "AQefStwD7hV9",
+              "parentId": "j83NqbUYZQOC",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "详情："
+                    }
+                  },
+                  {
+                    "bold": true,
+                    "kind": "text",
+                    "text": {
+                      "text": "加粗"
+                    }
+                  },
+                  {
+                    "italic": true,
+                    "kind": "text",
+                    "text": {
+                      "text": "斜体"
+                    }
+                  },
+                  {
+                    "underline": true,
+                    "kind": "text",
+                    "text": {
+                      "text": "下划线"
+                    }
+                  },
+                  {
+                    "strikeThrough": true,
+                    "kind": "text",
+                    "text": {
+                      "text": "删除线"
+                    }
+                  },
+                  {
+                    "color": "light_function_red",
+                    "kind": "text",
+                    "text": {
+                      "text": "红色"
+                    }
+                  },
+                  {
+                    "kind": "pronunciation",
+                    "pronunciation": {
+                      "content": "注音"
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "（"
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_001",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__cryo_infliction",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "表情）"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            },
+            "H0mZyHp8VyN0": {
+              "id": "H0mZyHp8VyN0",
+              "parentId": "eebL9882KcJe",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "ln2 表情測試："
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            },
+            "UowTNziY2edt": {
+              "id": "UowTNziY2edt",
+              "parentId": "eebL9882KcJe",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "ln5 "
+                    }
+                  },
+                  {
+                    "kind": "annotation",
+                    "annotation": {
+                      "inlineElements": [
+                        {
+                          "kind": "text",
+                          "text": {
+                            "text": "標題："
+                          }
+                        },
+                        {
+                          "bold": true,
+                          "kind": "text",
+                          "text": {
+                            "text": "加粗"
+                          }
+                        },
+                        {
+                          "italic": true,
+                          "kind": "text",
+                          "text": {
+                            "text": "斜体"
+                          }
+                        },
+                        {
+                          "underline": true,
+                          "kind": "text",
+                          "text": {
+                            "text": "下划线"
+                          }
+                        },
+                        {
+                          "strikeThrough": true,
+                          "kind": "text",
+                          "text": {
+                            "text": "删除线"
+                          }
+                        },
+                        {
+                          "color": "light_function_red",
+                          "kind": "text",
+                          "text": {
+                            "text": "红色"
+                          }
+                        },
+                        {
+                          "kind": "pronunciation",
+                          "pronunciation": {
+                            "content": "注音"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "text": {
+                            "text": "        "
+                          }
+                        },
+                        {
+                          "kind": "link",
+                          "link": {
+                            "link": "https://eihrteam.org",
+                            "text": "链接"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "text": {
+                            "text": "（"
+                          }
+                        },
+                        {
+                          "kind": "gameIcon",
+                          "gameIcon": {
+                            "id": "emoji_sns_emoiji_001",
+                            "text": ""
+                          }
+                        },
+                        {
+                          "kind": "gameIcon",
+                          "gameIcon": {
+                            "id": "combat_related__cryo_infliction",
+                            "text": ""
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "text": {
+                            "text": "表情）"
+                          }
+                        }
+                      ],
+                      "childIds": [
+                        "AQefStwD7hV9"
+                      ]
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            },
+            "WExpAR4EvmNz": {
+              "id": "WExpAR4EvmNz",
+              "parentId": "eebL9882KcJe",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "ln4 戰鬥相關 "
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__cryo_infliction",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__solidification",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__cryo_susceptibility",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__cryo_amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__shatter",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__vulnerability",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__lift",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__knock_down",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__heat_infliction",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__combustion",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__heat_susceptibility",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__heat_amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__breach",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__crush",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__slow",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__haste",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__electric_infliction",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__electrification",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__electric_susceptibility",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__electric_amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__physical_susceptibility",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__physical_amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__weakness",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__nature_infliction",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__corrosion",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__nature_susceptibility",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__nature_amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__arts_susceptibility",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__arts_amp",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__protection",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "combat_related__link",
+                      "text": ""
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            },
+            "vHwWeMzfhXGf": {
+              "id": "vHwWeMzfhXGf",
+              "parentId": "eebL9882KcJe",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "ln1 此為文字說明部分 該條目僅供 XML 與自動化測試用，他組成員未經授權勿編輯、審核或上線"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            },
+            "xmxxL9r0B9lF": {
+              "id": "xmxxL9r0B9lF",
+              "parentId": "eebL9882KcJe",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "ln3 emoji "
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_001",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_002",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_003",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_004",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_005",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_006",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_007",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_008",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_009",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_010",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_011",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_012",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_013",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_014",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_015",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_016",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_017",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_018",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_019",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_020",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_021",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_022",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_023",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_024",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_025",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_026",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_027",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_028",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_029",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_030",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_031",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_032",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_033",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_034",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_035",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_036",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_037",
+                      "text": ""
+                    }
+                  },
+                  {
+                    "kind": "gameIcon",
+                    "gameIcon": {
+                      "id": "emoji_sns_emoiji_038",
+                      "text": ""
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            }
+          },
+          "authorMap": {},
+          "version": "1.0.0"
+        },
+        "mdBm3Dqk": {
+          "id": "41Cip0IYc2jZ",
+          "blockIds": [
+            "B4ITJ5d6d4iQ"
+          ],
+          "blockMap": {
+            "B4ITJ5d6d4iQ": {
+              "id": "B4ITJ5d6d4iQ",
+              "parentId": "41Cip0IYc2jZ",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "对方对话-1（分支1） 对话文本123 下附图片"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            }
+          },
+          "authorMap": {},
+          "version": "1.0.0"
+        },
+        "nq5YXbyP": {
+          "id": "3f6z6IkmSXja",
+          "blockIds": [
+            "B4ITJ5d6d4iQ"
+          ],
+          "blockMap": {
+            "B4ITJ5d6d4iQ": {
+              "id": "B4ITJ5d6d4iQ",
+              "parentId": "3f6z6IkmSXja",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "我方对话-1（分支1） 对话文本123 不可附图，强制我方开头"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            }
+          },
+          "authorMap": {},
+          "version": "1.0.0"
+        },
+        "phNGuExc": {
+          "id": "PSRVYDTckfBy",
+          "blockIds": [
+            "B4ITJ5d6d4iQ"
+          ],
+          "blockMap": {
+            "B4ITJ5d6d4iQ": {
+              "id": "B4ITJ5d6d4iQ",
+              "parentId": "PSRVYDTckfBy",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "我方对话-1 对话文本123 下附图片"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            }
+          },
+          "authorMap": {},
+          "version": "1.0.0"
+        },
+        "uv1sSu3F": {
+          "id": "JkHMjG0R9eFY",
+          "blockIds": [
+            "B4ITJ5d6d4iQ"
+          ],
+          "blockMap": {
+            "B4ITJ5d6d4iQ": {
+              "id": "B4ITJ5d6d4iQ",
+              "parentId": "JkHMjG0R9eFY",
+              "align": "left",
+              "kind": "text",
+              "text": {
+                "inlineElements": [
+                  {
+                    "kind": "text",
+                    "text": {
+                      "text": "对方对话-1 对话文本123 下附图片"
+                    }
+                  }
+                ],
+                "kind": "body"
+              }
+            }
+          },
+          "authorMap": {},
+          "version": "1.0.0"
+        }
+      },
+      "chapterGroup": [
+        {
+          "title": "正文",
+          "widgets": [
+            {
+              "id": "BJ8iUfWK",
+              "title": "",
+              "size": "large"
+            },
+            {
+              "id": "GMmruCuC",
+              "title": "对话组件-1",
+              "size": "large"
+            }
+          ],
+          "id": "nIbWITbE"
+        }
+      ],
+      "extraInfo": {
+        "showType": "",
+        "illustration": "",
+        "composite": ""
+      },
+      "widgetCommonMap": {
+        "BJ8iUfWK": {
+          "type": "common",
+          "tableList": [],
+          "tabList": [
+            {
+              "tabId": "tab_1794832429064",
+              "title": "tag1",
+              "icon": ""
+            }
+          ],
+          "tabDataMap": {
+            "tab_1794832429064": {
+              "intro": {
+                "name": "名稱",
+                "type": "類型",
+                "imgUrl": "",
+                "description": "fqBaddPs"
+              },
+              "content": "NuuNMpCb",
+              "audioList": []
+            }
+          },
+          "dialogList": []
+        },
+        "GMmruCuC": {
+          "type": "dialog",
+          "tableList": [],
+          "tabList": [],
+          "tabDataMap": {},
+          "dialogList": [
+            {
+              "id": "JAxR7XhM",
+              "type": "dialog-other",
+              "options": {
+                "name": "对方名字1",
+                "avatarUrl": "https://bbs.hycdn.cn/image/common/20261116/2054140/6afafbb840f5a1c1d133ab15_f1525633.jpg",
+                "contents": [
+                  {
+                    "id": "dJ83mJX3",
+                    "type": "text",
+                    "text": "uv1sSu3F",
+                    "imageUrl": ""
+                  },
+                  {
+                    "id": "xxyPEspJ",
+                    "type": "image",
+                    "text": "",
+                    "imageUrl": "https://bbs.hycdn.cn/image/common/20261116/2054140/6afafba984736c0dc5d11242_3eac6ad0.png"
+                  },
+                  {
+                    "id": "6FFtpdK2",
+                    "type": "text",
+                    "text": "EQStOVtw",
+                    "imageUrl": ""
+                  },
+                  {
+                    "id": "OXeZ52gX",
+                    "type": "text",
+                    "text": "FQaFnGAv",
+                    "imageUrl": ""
+                  }
+                ],
+                "branchList": [],
+                "title": "",
+                "dialogList": [],
+                "type": "",
+                "text": ""
+              }
+            },
+            {
+              "id": "fRsUUu36",
+              "type": "dialog-me",
+              "options": {
+                "name": "我方名字1",
+                "avatarUrl": "https://bbs.hycdn.cn/image/common/20261116/2054140/6afafd949e65de50e6f5d4ee_f1525633.png",
+                "contents": [
+                  {
+                    "id": "3fPvPnDg",
+                    "type": "text",
+                    "text": "phNGuExc",
+                    "imageUrl": ""
+                  },
+                  {
+                    "id": "IFgohbYD",
+                    "type": "image",
+                    "text": "",
+                    "imageUrl": "https://bbs.hycdn.cn/image/common/20261116/2054140/6afafccd47ee253892665b4c_6ad0f152.jpg"
+                  },
+                  {
+                    "id": "3klPQ22p",
+                    "type": "text",
+                    "text": "EGE6bAWv",
+                    "imageUrl": ""
+                  }
+                ],
+                "branchList": [],
+                "title": "",
+                "dialogList": [],
+                "type": "",
+                "text": ""
+              }
+            },
+            {
+              "id": "lfBmVs9x",
+              "type": "branch-group",
+              "options": {
+                "name": "",
+                "avatarUrl": "",
+                "contents": [],
+                "branchList": [
+                  {
+                    "id": "3w7lkLlo",
+                    "type": "branch-group-item",
+                    "options": {
+                      "title": "分支1",
+                      "dialogList": [
+                        {
+                          "id": "VV608vX3",
+                          "type": "dialog-me",
+                          "options": {
+                            "name": "我方名字1",
+                            "avatarUrl": "https://bbs.hycdn.cn/image/common/20261116/2054140/6afafd996eac5d49bbfe20be_13673ac9.png",
+                            "contents": [
+                              {
+                                "id": "HLcp2vQE",
+                                "type": "text",
+                                "text": "nq5YXbyP",
+                                "imageUrl": ""
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "vaL9gjuF",
+                          "type": "dialog-other",
+                          "options": {
+                            "name": "对方名字1",
+                            "avatarUrl": "https://bbs.hycdn.cn/image/common/20261116/2054140/6afafd79dcfdf7103131af20_3eac6ad0.jpg",
+                            "contents": [
+                              {
+                                "id": "O7rc7Xo2",
+                                "type": "text",
+                                "text": "mdBm3Dqk",
+                                "imageUrl": ""
+                              },
+                              {
+                                "id": "xqq232FM",
+                                "type": "image",
+                                "text": "",
+                                "imageUrl": "https://bbs.hycdn.cn/image/common/20261116/2054140/6afafd64738e3fe4cb7acbf5_56331367.png"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "title": "",
+                "dialogList": [],
+                "type": "",
+                "text": ""
+              }
+            },
+            {
+              "id": "WQrRbNu3",
+              "type": "dividing-line",
+              "options": {
+                "name": "",
+                "avatarUrl": "",
+                "contents": [],
+                "branchList": [],
+                "title": "",
+                "dialogList": [],
+                "type": "5",
+                "text": ""
+              }
+            },
+            {
+              "id": "Jkmiyxiu",
+              "type": "dialog-other",
+              "options": {
+                "name": "对方名字1",
+                "avatarUrl": "https://bbs.hycdn.cn/image/common/20261116/2054140/6afafdcb738e3fe4cb7acbf7_6ad0f152.jpg",
+                "contents": [
+                  {
+                    "id": "JSvyope6",
+                    "type": "text",
+                    "text": "e9nHd6X6",
+                    "imageUrl": ""
+                  }
+                ],
+                "branchList": [],
+                "title": "",
+                "dialogList": [],
+                "type": "",
+                "text": ""
+              }
+            },
+            {
+              "id": "oR6jxwhJ",
+              "type": "branch-group",
+              "options": {
+                "name": "",
+                "avatarUrl": "",
+                "contents": [],
+                "branchList": [
+                  {
+                    "id": "DArBWHhE",
+                    "type": "branch-group-item",
+                    "options": {
+                      "title": "分支2",
+                      "dialogList": [
+                        {
+                          "id": "pxzmTHl0",
+                          "type": "dialog-me",
+                          "options": {
+                            "name": "我方名字1",
+                            "avatarUrl": "https://bbs.hycdn.cn/image/common/20261116/2054140/6afafe6e9361bcbe8ead6697_db193eac.png",
+                            "contents": [
+                              {
+                                "id": "IydqwDKS",
+                                "type": "text",
+                                "text": "5BIQfFqR",
+                                "imageUrl": ""
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "EHy7CcPI",
+                          "type": "dialog-other",
+                          "options": {
+                            "name": "",
+                            "avatarUrl": "https://bbs.hycdn.cn/image/common/20261116/2054140/6afafe8ae3d51d8ad405c335_3eac6ad0.jpg",
+                            "contents": [
+                              {
+                                "id": "kNZr7NZt",
+                                "type": "text",
+                                "text": "aNza7vIL",
+                                "imageUrl": ""
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "title": "",
+                "dialogList": [],
+                "type": "",
+                "text": ""
+              }
+            }
+          ]
+        }
+      }
+    },
+    "name": "playground-1",
+    "mainType": {
+      "id": "1",
+      "name": "终末地百科",
+      "status": 2,
+      "position": 1,
+      "typeSub": []
+    },
+    "subType": {
+      "id": "1",
+      "name": "干员",
+      "fatherTypeId": "1",
+      "style": 1,
+      "status": 2,
+      "position": 1,
+      "icon": "",
+      "items": [],
+      "filterTagTree": [
+        {
+          "id": "10200",
+          "children": [
+            {
+              "id": "10201",
+              "children": [],
+              "name": "近卫",
+              "type": 4,
+              "value": "profession_guard",
+              "hide": false
+            },
+            {
+              "id": "10202",
+              "children": [],
+              "name": "术师",
+              "type": 4,
+              "value": "profession_caster",
+              "hide": false
+            },
+            {
+              "id": "10203",
+              "children": [],
+              "name": "突击",
+              "type": 4,
+              "value": "profession_assault",
+              "hide": false
+            },
+            {
+              "id": "10204",
+              "children": [],
+              "name": "先锋",
+              "type": 4,
+              "value": "profession_vanguard",
+              "hide": false
+            },
+            {
+              "id": "10205",
+              "children": [],
+              "name": "重装",
+              "type": 4,
+              "value": "profession_defender",
+              "hide": false
+            },
+            {
+              "id": "10206",
+              "children": [],
+              "name": "辅助",
+              "type": 4,
+              "value": "profession_supporter",
+              "hide": false
+            }
+          ],
+          "name": "干员职业",
+          "type": 4,
+          "value": "",
+          "hide": false
+        },
+        {
+          "id": "10000",
+          "children": [
+            {
+              "id": "10001",
+              "children": [],
+              "name": "1星",
+              "type": 2,
+              "value": "rarity_1",
+              "hide": false
+            },
+            {
+              "id": "10002",
+              "children": [],
+              "name": "2星",
+              "type": 2,
+              "value": "rarity_2",
+              "hide": false
+            },
+            {
+              "id": "10003",
+              "children": [],
+              "name": "3星",
+              "type": 2,
+              "value": "rarity_3",
+              "hide": false
+            },
+            {
+              "id": "10004",
+              "children": [],
+              "name": "4星",
+              "type": 2,
+              "value": "rarity_4",
+              "hide": false
+            },
+            {
+              "id": "10005",
+              "children": [],
+              "name": "5星",
+              "type": 2,
+              "value": "rarity_5",
+              "hide": false
+            },
+            {
+              "id": "10006",
+              "children": [],
+              "name": "6星",
+              "type": 2,
+              "value": "rarity_6",
+              "hide": false
+            }
+          ],
+          "name": "星级",
+          "type": 2,
+          "value": "",
+          "hide": false
+        },
+        {
+          "id": "10100",
+          "children": [
+            {
+              "id": "10101",
+              "children": [],
+              "name": "灼热",
+              "type": 3,
+              "value": "char_property_fire",
+              "hide": false
+            },
+            {
+              "id": "10102",
+              "children": [],
+              "name": "电磁",
+              "type": 3,
+              "value": "char_property_pulse",
+              "hide": false
+            },
+            {
+              "id": "10103",
+              "children": [],
+              "name": "寒冷",
+              "type": 3,
+              "value": "char_property_cryst",
+              "hide": false
+            },
+            {
+              "id": "10104",
+              "children": [],
+              "name": "自然",
+              "type": 3,
+              "value": "char_property_natural",
+              "hide": false
+            },
+            {
+              "id": "10105",
+              "children": [],
+              "name": "物理",
+              "type": 3,
+              "value": "char_property_physical",
+              "hide": false
+            }
+          ],
+          "name": "属性",
+          "type": 3,
+          "value": "",
+          "hide": false
+        },
+        {
+          "id": "10208",
+          "children": [
+            {
+              "id": "10214",
+              "children": [],
+              "name": "施术单元",
+              "type": 1,
+              "value": "",
+              "hide": false
+            },
+            {
+              "id": "10218",
+              "children": [],
+              "name": "手铳",
+              "type": 1,
+              "value": "",
+              "hide": false
+            },
+            {
+              "id": "10219",
+              "children": [],
+              "name": "单手剑",
+              "type": 1,
+              "value": "",
+              "hide": false
+            },
+            {
+              "id": "10216",
+              "children": [],
+              "name": "双手剑",
+              "type": 1,
+              "value": "",
+              "hide": false
+            },
+            {
+              "id": "10213",
+              "children": [],
+              "name": "长柄武器",
+              "type": 1,
+              "value": "",
+              "hide": false
+            }
+          ],
+          "name": "武器",
+          "type": 1,
+          "value": "",
+          "hide": false
+        },
+        {
+          "id": "10207",
+          "children": [
+            {
+              "id": "10210",
+              "children": [],
+              "name": "力量",
+              "type": 1,
+              "value": "",
+              "hide": false
+            },
+            {
+              "id": "10211",
+              "children": [],
+              "name": "敏捷",
+              "type": 1,
+              "value": "",
+              "hide": false
+            },
+            {
+              "id": "10217",
+              "children": [],
+              "name": "智识",
+              "type": 1,
+              "value": "",
+              "hide": false
+            },
+            {
+              "id": "10212",
+              "children": [],
+              "name": "意志",
+              "type": 1,
+              "value": "",
+              "hide": false
+            }
+          ],
+          "name": "主能力",
+          "type": 1,
+          "value": "",
+          "hide": false
+        },
+        {
+          "id": "10209",
+          "children": [
+            {
+              "id": "10221",
+              "children": [],
+              "name": "力量",
+              "type": 1,
+              "value": "",
+              "hide": false
+            },
+            {
+              "id": "10222",
+              "children": [],
+              "name": "敏捷",
+              "type": 1,
+              "value": "",
+              "hide": false
+            },
+            {
+              "id": "10220",
+              "children": [],
+              "name": "智识",
+              "type": 1,
+              "value": "",
+              "hide": false
+            },
+            {
+              "id": "10215",
+              "children": [],
+              "name": "意志",
+              "type": 1,
+              "value": "",
+              "hide": false
+            }
+          ],
+          "name": "副能力",
+          "type": 1,
+          "value": "",
+          "hide": false
+        }
+      ]
+    },
+    "lang": "zh_Hans",
+    "lastUpdatedUser": null,
+    "createdUser": null,
+    "brief": {
+      "cover": "",
+      "name": "playground-1",
+      "description": {
+        "id": "MOypkKFSRPgA",
+        "blockIds": [
+          "vHwWeMzfhXGf",
+          "H0mZyHp8VyN0",
+          "xmxxL9r0B9lF",
+          "WExpAR4EvmNz",
+          "UowTNziY2edt"
+        ],
+        "blockMap": {
+          "AQefStwD7hV9": {
+            "id": "AQefStwD7hV9",
+            "parentId": "C9o8AdnqSn62",
+            "align": "left",
+            "kind": "text",
+            "text": {
+              "inlineElements": [
+                {
+                  "kind": "text",
+                  "text": {
+                    "text": "详情："
+                  }
+                },
+                {
+                  "bold": true,
+                  "kind": "text",
+                  "text": {
+                    "text": "加粗"
+                  }
+                },
+                {
+                  "italic": true,
+                  "kind": "text",
+                  "text": {
+                    "text": "斜体"
+                  }
+                },
+                {
+                  "underline": true,
+                  "kind": "text",
+                  "text": {
+                    "text": "下划线"
+                  }
+                },
+                {
+                  "strikeThrough": true,
+                  "kind": "text",
+                  "text": {
+                    "text": "删除线"
+                  }
+                },
+                {
+                  "color": "light_function_red",
+                  "kind": "text",
+                  "text": {
+                    "text": "红色"
+                  }
+                },
+                {
+                  "kind": "pronunciation",
+                  "pronunciation": {
+                    "content": "注音"
+                  }
+                },
+                {
+                  "kind": "text",
+                  "text": {
+                    "text": "（"
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_001",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__cryo_infliction",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "text": {
+                    "text": "表情）"
+                  }
+                }
+              ],
+              "kind": "body"
+            }
+          },
+          "H0mZyHp8VyN0": {
+            "id": "H0mZyHp8VyN0",
+            "parentId": "MOypkKFSRPgA",
+            "align": "left",
+            "kind": "text",
+            "text": {
+              "inlineElements": [
+                {
+                  "kind": "text",
+                  "text": {
+                    "text": "ln2 表情測試："
+                  }
+                }
+              ],
+              "kind": "body"
+            }
+          },
+          "UowTNziY2edt": {
+            "id": "UowTNziY2edt",
+            "parentId": "MOypkKFSRPgA",
+            "align": "left",
+            "kind": "text",
+            "text": {
+              "inlineElements": [
+                {
+                  "kind": "text",
+                  "text": {
+                    "text": "ln5 "
+                  }
+                },
+                {
+                  "kind": "annotation",
+                  "annotation": {
+                    "inlineElements": [
+                      {
+                        "kind": "text",
+                        "text": {
+                          "text": "標題："
+                        }
+                      },
+                      {
+                        "bold": true,
+                        "kind": "text",
+                        "text": {
+                          "text": "加粗"
+                        }
+                      },
+                      {
+                        "italic": true,
+                        "kind": "text",
+                        "text": {
+                          "text": "斜体"
+                        }
+                      },
+                      {
+                        "underline": true,
+                        "kind": "text",
+                        "text": {
+                          "text": "下划线"
+                        }
+                      },
+                      {
+                        "strikeThrough": true,
+                        "kind": "text",
+                        "text": {
+                          "text": "删除线"
+                        }
+                      },
+                      {
+                        "color": "light_function_red",
+                        "kind": "text",
+                        "text": {
+                          "text": "红色"
+                        }
+                      },
+                      {
+                        "kind": "pronunciation",
+                        "pronunciation": {
+                          "content": "注音"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "text": {
+                          "text": "        "
+                        }
+                      },
+                      {
+                        "kind": "link",
+                        "link": {
+                          "link": "https://eihrteam.org",
+                          "text": "链接"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "text": {
+                          "text": "（"
+                        }
+                      },
+                      {
+                        "kind": "gameIcon",
+                        "gameIcon": {
+                          "id": "emoji_sns_emoiji_001",
+                          "text": ""
+                        }
+                      },
+                      {
+                        "kind": "gameIcon",
+                        "gameIcon": {
+                          "id": "combat_related__cryo_infliction",
+                          "text": ""
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "text": {
+                          "text": "表情）"
+                        }
+                      }
+                    ],
+                    "childIds": [
+                      "AQefStwD7hV9"
+                    ]
+                  }
+                }
+              ],
+              "kind": "body"
+            }
+          },
+          "WExpAR4EvmNz": {
+            "id": "WExpAR4EvmNz",
+            "parentId": "MOypkKFSRPgA",
+            "align": "left",
+            "kind": "text",
+            "text": {
+              "inlineElements": [
+                {
+                  "kind": "text",
+                  "text": {
+                    "text": "ln4 戰鬥相關 "
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__cryo_infliction",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__solidification",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__cryo_susceptibility",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__cryo_amp",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__shatter",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__vulnerability",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__lift",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__knock_down",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__heat_infliction",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__combustion",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__heat_susceptibility",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__heat_amp",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__breach",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__crush",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__slow",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__haste",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__electric_infliction",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__electrification",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__electric_susceptibility",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__electric_amp",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__physical_susceptibility",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__physical_amp",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__weakness",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__amp",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__nature_infliction",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__corrosion",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__nature_susceptibility",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__nature_amp",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__arts_susceptibility",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__arts_amp",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__protection",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "combat_related__link",
+                    "text": ""
+                  }
+                }
+              ],
+              "kind": "body"
+            }
+          },
+          "vHwWeMzfhXGf": {
+            "id": "vHwWeMzfhXGf",
+            "parentId": "MOypkKFSRPgA",
+            "align": "left",
+            "kind": "text",
+            "text": {
+              "inlineElements": [
+                {
+                  "kind": "text",
+                  "text": {
+                    "text": "ln1 此為簡介部分 該條目僅供 XML 與自動化測試用，他組成員未經授權勿編輯、審核或上線"
+                  }
+                }
+              ],
+              "kind": "body"
+            }
+          },
+          "xmxxL9r0B9lF": {
+            "id": "xmxxL9r0B9lF",
+            "parentId": "MOypkKFSRPgA",
+            "align": "left",
+            "kind": "text",
+            "text": {
+              "inlineElements": [
+                {
+                  "kind": "text",
+                  "text": {
+                    "text": "ln3 emoji "
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_001",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_002",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_003",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_004",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_005",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_006",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_007",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_008",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_009",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_010",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_011",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_012",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_013",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_014",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_015",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_016",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_017",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_018",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_019",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_020",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_021",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_022",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_023",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_024",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_025",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_026",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_027",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_028",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_029",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_030",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_031",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_032",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_033",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_034",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_035",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_036",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_037",
+                    "text": ""
+                  }
+                },
+                {
+                  "kind": "gameIcon",
+                  "gameIcon": {
+                    "id": "emoji_sns_emoiji_038",
+                    "text": ""
+                  }
+                }
+              ],
+              "kind": "body"
+            }
+          }
+        },
+        "authorMap": {},
+        "version": "1.0.0"
+      },
+      "associate": null,
+      "dotType": "",
+      "subTypeList": [],
+      "composite": null,
+      "disableCoverShowInDetail": false,
+      "redirectLink": "",
+      "redirectLinkMobile": ""
+    },
+    "status": 0,
+    "lastAuditPassedAt": "1794834420",
+    "tagIds": []
+  },
+  "commitMsg": "[IPE-NEXT] Quick edit"
+}

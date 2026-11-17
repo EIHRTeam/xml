@@ -41,6 +41,7 @@ import {
   paragraph,
   textRun,
   validateComplexTableBlock,
+  validateDocumentInlines,
 } from './model.js'
 
 function parseXmlRoot(source: string): Element {
@@ -431,8 +432,7 @@ function parseMixedBlocks(
         else if (!lineHasBlock) blocks.push(paragraph())
         lineHasBlock = false
       }
-      const stripped = part.trim()
-      if (stripped) ensureCurrent().push(textRun(stripped))
+      if (part.trim() || currentInlines) ensureCurrent().push(textRun(part))
     }
   }
 
@@ -609,12 +609,6 @@ function parseBlockElement(
 }
 
 function parseComplexTable(element: Element, chapterSize?: string): ComplexTableBlock {
-  if (!chapterSize) {
-    throw new EndfieldWikitextConversionError(
-      'Complex tables require a chapter size to derive default widths.'
-    )
-  }
-
   const headerMode = (element.getAttribute('header') || 'none').trim() || 'none'
   if (!HEADER_MODES.has(headerMode)) {
     throw new EndfieldWikitextConversionError(`Unsupported table header mode '${headerMode}'.`)
@@ -802,19 +796,19 @@ function parseListElement(
   }
 }
 
+interface InlineParseState {
+  bold?: boolean
+  italic?: boolean
+  underline?: boolean
+  strike?: boolean
+  color?: string | null
+  preserveNewlines?: boolean
+  preserveWhitespace?: boolean
+}
+
 function parseInlineContainer(
   element: Element,
-  state?: {
-    bold?: boolean
-    italic?: boolean
-    underline?: boolean
-    strike?: boolean
-    color?: string | null
-    /** When true, `\n` in text nodes is preserved rather than collapsed to a
-     *  space. Only enabled for imgIntro descriptions; all other call sites
-     *  treat `\n` as regular whitespace. */
-    preserveNewlines?: boolean
-  }
+  state?: InlineParseState,
 ): Inline[] {
   const bold = state?.bold ?? false
   const italic = state?.italic ?? false
@@ -822,6 +816,9 @@ function parseInlineContainer(
   const strike = state?.strike ?? false
   const color = state?.color ?? null
   const preserveNewlines = state?.preserveNewlines ?? false
+  const preserveWhitespace = state?.preserveWhitespace ?? Boolean(
+    element.getElementsByTagName('emoji').length || element.getElementsByTagName('annotation').length
+  )
 
   const inlines: Inline[] = []
 
@@ -834,6 +831,7 @@ function parseInlineContainer(
         strike,
         color,
         preserveNewlines,
+        preserveWhitespace,
       })
       continue
     }
@@ -850,6 +848,7 @@ function parseInlineContainer(
         strike,
         color,
         preserveNewlines,
+        preserveWhitespace,
       })
     )
   }
@@ -859,14 +858,7 @@ function parseInlineContainer(
 
 function parseInlineElement(
   element: Element,
-  state?: {
-    bold?: boolean
-    italic?: boolean
-    underline?: boolean
-    strike?: boolean
-    color?: string | null
-    preserveNewlines?: boolean
-  }
+  state?: InlineParseState,
 ): Inline[] {
   const bold = state?.bold ?? false
   const italic = state?.italic ?? false
@@ -874,6 +866,25 @@ function parseInlineElement(
   const strike = state?.strike ?? false
   const color = state?.color ?? null
   const preserveNewlines = state?.preserveNewlines ?? false
+  const preserveWhitespace = state?.preserveWhitespace ?? Boolean(
+    element.getElementsByTagName('emoji').length || element.getElementsByTagName('annotation').length
+  )
+
+  if (element.tagName === 'emoji') {
+    const id = element.getAttribute('id')
+    if (!id?.trim()) throw new EndfieldWikitextConversionError('Emoji must include a nonempty id.')
+    if (childElements(element).length || directTextContent(element).trim()) {
+      throw new EndfieldWikitextConversionError('<emoji> must not contain content.')
+    }
+    if (Array.from(element.attributes).some((attribute) => attribute.name !== 'id')) {
+      throw new EndfieldWikitextConversionError('<emoji> only supports the id attribute.')
+    }
+    return [{ inlineType: 'emoji', id }]
+  }
+
+  if (element.tagName === 'annotation') {
+    return [annotationFromXml(element)]
+  }
 
   if (element.tagName === 'br') {
     assertEmptyLineBreak(element)
@@ -881,19 +892,19 @@ function parseInlineElement(
   }
 
   if (element.tagName === 'b') {
-    return parseInlineContainer(element, { bold: true, italic, underline, strike, color, preserveNewlines })
+    return parseInlineContainer(element, { bold: true, italic, underline, strike, color, preserveNewlines, preserveWhitespace })
   }
 
   if (element.tagName === 'i') {
-    return parseInlineContainer(element, { bold, italic: true, underline, strike, color, preserveNewlines })
+    return parseInlineContainer(element, { bold, italic: true, underline, strike, color, preserveNewlines, preserveWhitespace })
   }
 
   if (element.tagName === 'u') {
-    return parseInlineContainer(element, { bold, italic, underline: true, strike, color, preserveNewlines })
+    return parseInlineContainer(element, { bold, italic, underline: true, strike, color, preserveNewlines, preserveWhitespace })
   }
 
   if (element.tagName === 's') {
-    return parseInlineContainer(element, { bold, italic, underline, strike: true, color, preserveNewlines })
+    return parseInlineContainer(element, { bold, italic, underline, strike: true, color, preserveNewlines, preserveWhitespace })
   }
 
   if (element.tagName === 'color') {
@@ -911,6 +922,7 @@ function parseInlineElement(
       strike,
       color: colorValue,
       preserveNewlines,
+      preserveWhitespace,
     })
   }
 
@@ -951,6 +963,35 @@ function parseInlineElement(
   throw new EndfieldWikitextConversionError(`Unsupported inline tag <${element.tagName}>.`)
 }
 
+function annotationFromXml(element: Element): Inline {
+  if (element.getElementsByTagName('annotation').length) {
+    throw new EndfieldWikitextConversionError('Nested annotations are not supported.')
+  }
+  const children = childElements(element)
+  const titles = childrenByTag(element, 'title')
+  const contents = childrenByTag(element, 'content')
+  if (titles.length !== 1 || contents.length !== 1 || children.length !== 2 || directTextContent(element).trim()) {
+    throw new EndfieldWikitextConversionError('<annotation> must contain exactly one <title> and one <content>.')
+  }
+  // Read the DOM ancestry so every inline entry point inherits its block context.
+  let allowTables = true
+  let chapterSize: string | undefined
+  for (let parent = element.parentNode; parent; parent = parent.parentNode) {
+    if (parent.nodeType !== ELEMENT_NODE) continue
+    const ancestor = parent as Element
+    if (ancestor.tagName === 'annotation') {
+      throw new EndfieldWikitextConversionError('Nested annotations are not supported.')
+    }
+    if (ancestor.tagName === 'td' || ancestor.tagName === 'th') allowTables = false
+    if (ancestor.tagName === 'chapter') chapterSize = ancestor.getAttribute('size') || undefined
+  }
+  return {
+    inlineType: 'annotation',
+    title: parseInlineContainer(titles[0]!, { preserveWhitespace: true }),
+    content: parseMixedBlocks(contents[0]!, { allowTables, chapterSize }),
+  }
+}
+
 function appendInlineText(
   inlines: Inline[],
   text: string | null | undefined,
@@ -961,6 +1002,7 @@ function appendInlineText(
     strike: boolean
     color: string | null
     preserveNewlines?: boolean
+    preserveWhitespace?: boolean
   }
 ) {
   if (!text) {
@@ -968,7 +1010,9 @@ function appendInlineText(
   }
 
   let collapsed: string
-  if (state.preserveNewlines) {
+  if (state.preserveWhitespace) {
+    collapsed = text.replace(/\r\n|\r/g, '\n')
+  } else if (state.preserveNewlines) {
     // imgIntro description path: preserve newlines (they separate logical
     // lines), but collapse all other whitespace runs to a single space.
     // We do NOT trim newlines — only spaces/tabs — so that a leading
@@ -1001,6 +1045,7 @@ function appendInlineText(
 }
 
 export function documentToXmlText(document: DocumentModel): string {
+  validateDocumentInlines(document)
   const lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<sklandDocument>']
   lines.push(`    <itemId>${escapeXmlText(document.itemId)}</itemId>`)
   if (document.commitMsg !== undefined) {
@@ -1358,6 +1403,9 @@ function contentTextWithBreaks(element: Element, multiline = false): string {
         parts[parts.length - 1] += child.nodeValue ?? ''
       } else if (child.nodeType === ELEMENT_NODE) {
         const nested = child as Element
+        if (nested.tagName === 'emoji' || nested.tagName === 'annotation') {
+          throw new EndfieldWikitextConversionError(`Unsupported <${nested.tagName}> inside text-only <${element.tagName}>.`)
+        }
         if (nested.tagName === 'br') {
           assertEmptyLineBreak(nested)
           parts.push('')
@@ -1371,11 +1419,19 @@ function contentTextWithBreaks(element: Element, multiline = false): string {
   return parts.map((part) => multiline ? normalizedMultilineText(part) : normalizedText(part)).join('\n')
 }
 
-function renderInlines(inlines: Inline[]) {
+function renderInlines(inlines: Inline[]): string {
   return inlines.map((inline) => renderInline(inline)).join('')
 }
 
-function renderInline(inline: Inline) {
+function renderInline(inline: Inline): string {
+  if (inline.inlineType === 'emoji') {
+    return `<emoji id=${quoteAttr(inline.id)}></emoji>`
+  }
+
+  if (inline.inlineType === 'annotation') {
+    const content = renderBlocks(inline.content, 0).join('\n')
+    return `<annotation><title>${renderInlines(inline.title)}</title><content>\n${content}\n</content></annotation>`
+  }
   if (isTextRun(inline)) {
     let value = renderTextWithBreaks(inline.text)
     if (inline.color !== null) {
@@ -1448,13 +1504,18 @@ function inferImageParts(url: string): [string, string] {
   return [filename.slice(0, separatorIndex), filename.slice(dotIndex + 1)]
 }
 
-function parseColumnWidths(widthsAttr: string | null, chapterSize: string, columnCount: number) {
+function parseColumnWidths(widthsAttr: string | null, chapterSize: string | undefined, columnCount: number) {
   if (columnCount <= 0) {
     throw new EndfieldWikitextConversionError('Complex tables must contain at least one column.')
   }
 
   let widths: number[]
   if (!widthsAttr || !widthsAttr.trim()) {
+    if (!chapterSize) {
+      throw new EndfieldWikitextConversionError(
+        'Complex tables require a chapter size to derive default widths.'
+      )
+    }
     const totalWidth = TABLE_TOTAL_WIDTH_BY_SIZE[chapterSize]
     if (totalWidth == null) {
       throw new EndfieldWikitextConversionError(

@@ -40,6 +40,7 @@ import {
   paragraph,
   textRun,
   validateComplexTableBlock,
+  validateDocumentInlines,
 } from './model.js'
 
 export interface RenderJsonOptions {
@@ -293,6 +294,7 @@ function buildWikiJsonObject(
   options: RenderWikiJsonOptions,
   target: JsonRenderTarget,
 ) {
+  validateDocumentInlines(document)
   let factory = new IdFactory(new Set(), false, JSON.stringify(document))
   if (options.referenceJson !== undefined) {
     const parsed = ensureMapping(parseJsonInput(options.referenceJson), 'referenceJson')
@@ -612,10 +614,16 @@ function blocksFromDocument(document: Record<string, unknown>) {
   ), { id: typeof document.id === 'string' ? document.id : 'document-id' })
 }
 
+interface JsonBlockContext {
+  allowTables: boolean
+  inAnnotation?: boolean
+  activeIds?: Set<string>
+}
+
 function blocksFromChildIds(
   childIds: unknown[],
   blockMap: Record<string, unknown>,
-  options: { allowTables: boolean }
+  options: JsonBlockContext
 ) {
   const blocks: Block[] = []
   for (const childId of childIds) {
@@ -630,9 +638,19 @@ function blocksFromChildIds(
 function blockFromJson(
   blockId: string,
   blockMap: Record<string, unknown>,
-  options: { allowTables: boolean },
+  options: JsonBlockContext,
 ): Block {
-  const block = readBlockFromJson(blockId, blockMap, options)
+  const activeIds = options.activeIds ?? new Set<string>()
+  if (activeIds.has(blockId)) {
+    throw new EndfieldWikitextConversionError(`Cyclic JSON block reference '${blockId}'.`)
+  }
+  activeIds.add(blockId)
+  let block: Block
+  try {
+    block = readBlockFromJson(blockId, blockMap, { ...options, activeIds })
+  } finally {
+    activeIds.delete(blockId)
+  }
   const raw = blockMap[blockId] as Record<string, unknown>
   const table = raw.table as { rowIds: string[]; columnIds: string[] } | undefined
   const video = raw.externalVideo as { elementId?: string } | undefined
@@ -646,7 +664,7 @@ function blockFromJson(
 function readBlockFromJson(
   blockId: string,
   blockMap: Record<string, unknown>,
-  options: { allowTables: boolean }
+  options: JsonBlockContext
 ): Block {
   const block = ensureMapping(blockMap[blockId], `blockMap[${blockId}]`)
   const kind = requireString(block, `block[${blockId}].kind`, 'kind')
@@ -658,7 +676,9 @@ function readBlockFromJson(
       kind: requireString(textPayload, `block[${blockId}].text.kind`, 'kind'),
       align: requireString(block, `block[${blockId}].align`, 'align', 'left'),
       inlines: inlinesFromJson(
-        requireList(textPayload, `block[${blockId}].text.inlineElements`, 'inlineElements')
+        requireList(textPayload, `block[${blockId}].text.inlineElements`, 'inlineElements'),
+        blockMap,
+        options,
       ),
     }
   }
@@ -735,7 +755,7 @@ function readBlockFromJson(
     if (!options.allowTables) {
       throw new EndfieldWikitextConversionError('Nested tables are not supported inside table cells.')
     }
-    return tableFromJson(blockId, requireMapping(block, `block[${blockId}].table`, 'table'), blockMap)
+    return tableFromJson(blockId, requireMapping(block, `block[${blockId}].table`, 'table'), blockMap, options)
   }
 
   throw new EndfieldWikitextConversionError(`Unsupported JSON block kind '${kind}'.`)
@@ -744,7 +764,8 @@ function readBlockFromJson(
 function tableFromJson(
   blockId: string,
   tablePayload: Record<string, unknown>,
-  blockMap: Record<string, unknown>
+  blockMap: Record<string, unknown>,
+  options: JsonBlockContext,
 ): ComplexTableBlock {
   const rowIds = requireList(tablePayload, `table[${blockId}].rowIds`, 'rowIds')
   const columnIds = requireList(tablePayload, `table[${blockId}].columnIds`, 'columnIds')
@@ -775,7 +796,7 @@ function tableFromJson(
     cells.push({
       rowIndex,
       columnIndex: columnMapOrder.indexOf(columnId),
-      blocks: blocksFromChildIds(childIds, blockMap, { allowTables: false }),
+      blocks: blocksFromChildIds(childIds, blockMap, { ...options, allowTables: false }),
       rowSpan: parseIntValue(cell.rowSpan ?? '1', `cellMap[${cellKey}].rowSpan`),
       colSpan: parseIntValue(cell.colSpan ?? '1', `cellMap[${cellKey}].colSpan`),
     })
@@ -799,7 +820,11 @@ function tableFromJson(
   return table
 }
 
-function inlinesFromJson(inlineElements: unknown[]): Inline[] {
+function inlinesFromJson(
+  inlineElements: unknown[],
+  blockMap: Record<string, unknown>,
+  options: JsonBlockContext,
+): Inline[] {
   const explicitScaleColors = new Set<string>()
   for (const entry of inlineElements) {
     const entryMap = ensureMapping(entry, 'inline entry')
@@ -813,6 +838,29 @@ function inlinesFromJson(inlineElements: unknown[]): Inline[] {
   for (const rawEntry of inlineElements) {
     const entry = ensureMapping(rawEntry, 'inline entry')
     const kind = requireString(entry, 'inline.kind', 'kind')
+
+    if (kind === 'gameIcon') {
+      const icon = requireMapping(entry, 'inline.gameIcon', 'gameIcon')
+      const id = requireString(icon, 'gameIcon.id', 'id')
+      if (!id.trim()) throw new EndfieldWikitextConversionError('Emoji must include a nonempty id.')
+      if (requireString(icon, 'gameIcon.text', 'text', '') !== '') {
+        throw new EndfieldWikitextConversionError('gameIcon.text must be empty.')
+      }
+      inlines.push({ inlineType: 'emoji', id })
+      continue
+    }
+
+    if (kind === 'annotation') {
+      if (options.inAnnotation) throw new EndfieldWikitextConversionError('Nested annotations are not supported.')
+      const annotation = requireMapping(entry, 'inline.annotation', 'annotation')
+      const context = { ...options, inAnnotation: true }
+      inlines.push({
+        inlineType: 'annotation',
+        title: inlinesFromJson(requireList(annotation, 'annotation.inlineElements', 'inlineElements'), blockMap, context),
+        content: blocksFromChildIds(requireList(annotation, 'annotation.childIds', 'childIds'), blockMap, context),
+      })
+      continue
+    }
 
     if (kind === 'text') {
       const colorName = typeof entry.color === 'string' ? entry.color : null
@@ -1098,7 +1146,7 @@ function appendBlock(
       align: block.align,
       kind: 'text',
       text: {
-        inlineElements: block.inlines.map((inline) => inlineToJson(inline)),
+        inlineElements: block.inlines.map((inline) => inlineToJson(inline, blockMap, blockId, factory)),
         kind: block.kind,
       },
     }
@@ -1260,7 +1308,25 @@ function introDocumentBlocks(intro: ImageIntro, useCached = false): Block[] {
   return blocks
 }
 
-function inlineToJson(inline: Inline): Record<string, unknown> {
+function inlineToJson(
+  inline: Inline,
+  blockMap: Record<string, unknown>,
+  parentId: string,
+  factory: IdFactory,
+): Record<string, unknown> {
+  if (inline.inlineType === 'emoji') {
+    return { kind: 'gameIcon', gameIcon: { id: inline.id, text: '' } }
+  }
+
+  if (inline.inlineType === 'annotation') {
+    return {
+      kind: 'annotation',
+      annotation: {
+        inlineElements: inline.title.map((entry) => inlineToJson(entry, blockMap, parentId, factory)),
+        childIds: normalizeBlocks(inline.content).map((block) => appendBlock(block, blockMap, parentId, factory)),
+      },
+    }
+  }
   if (isTextRun(inline)) {
     const payload: Record<string, unknown> = {
       kind: 'text',
