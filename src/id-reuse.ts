@@ -1,6 +1,6 @@
 import { IdFactory } from './ids.js'
 import { identity, withIdentity, type Identity } from './identity.js'
-import { normalizeBlocks, type Block, type DocumentModel, type ImageIntro } from './model.js'
+import { normalizeBlocks, normalizeDialogText, type Block, type DialogEntry, type DialogMessage, type DocumentModel, type ImageIntro } from './model.js'
 
 interface Node {
   object: object
@@ -57,12 +57,13 @@ function tree(
     return { object, type, children, keys: keys.filter(Boolean), movable, signature }
   }
   const tables: Tree['tables'] = []
-  const blocks = (items: Block[]): Node[] => {
-    const normalized = normalizeBlocks(items)
+  const blocks = (items: Block[], normalize = normalizeBlocks): Node[] => {
+    const normalized = normalize(items)
     items.splice(0, items.length, ...normalized)
     return items.map(blockNode)
   }
-  const documentNode = (items: Block[]): Node => node(items, 'document', null, { blocks: blocks(items) }, [], false)
+  const documentNode = (items: Block[], normalize = normalizeBlocks): Node =>
+    node(items, 'document', null, { blocks: blocks(items, normalize) }, [], false)
   function blockNode(block: Block): Node {
     switch (block.blockType) {
       case 'paragraph':
@@ -131,6 +132,37 @@ function tree(
         audio.resourceUrl && `url:${audio.resourceUrl}`,
       ]),
     )
+  function dialogMessageNode(message: DialogMessage): Node {
+    return node(
+      message,
+      `dialogMessage:${message.side}`,
+      [message.name, message.avatarUrl],
+      {
+        contents: message.contents.map((content) => content.type === 'text'
+          ? node(content, 'dialogText', null, { document: [documentNode(content.blocks, normalizeDialogText)] })
+          : node(content, 'dialogImage', content.src, {}, [`url:${content.src}`])),
+      },
+      [message.name && `name:${message.side}:${message.name}`, `avatar:${message.side}:${message.avatarUrl}`],
+    )
+  }
+
+  function dialogNode(entry: DialogEntry): Node {
+    switch (entry.type) {
+      case 'message':
+        return dialogMessageNode(entry)
+      case 'divider':
+        return node(entry, 'dialogDivider', [entry.kind, entry.text])
+      case 'branches':
+        return node(entry, 'dialogBranches', null, {
+          branches: entry.branches.map((branch) =>
+            node(branch, 'dialogBranch', branch.title, { messages: branch.messages.map(dialogMessageNode) }, [
+              branch.title && `title:${branch.title}`,
+            ]),
+          ),
+        })
+    }
+  }
+
   const root = node(
     document,
     'root',
@@ -149,6 +181,7 @@ function tree(
                 `chapter:${chapter.chapterType}`,
                 [chapter.title, chapter.size, chapter.tableRows],
                 {
+                  ...(chapter.dialog ? { dialog: chapter.dialog.map(dialogNode) } : {}),
                   content: [documentNode(chapter.content)],
                   audios: audioNodes(chapter.audios),
                   tabs: (chapter.audioTabs ?? chapter.tabs).map((tab) => {

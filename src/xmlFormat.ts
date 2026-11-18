@@ -15,6 +15,9 @@ import type {
   ChapterGroup,
   ComplexTableBlock,
   ComplexTableCell,
+  DialogEntry,
+  DialogMessage,
+  DialogMessageContent,
   DocumentModel,
   ImageIntro,
   Inline,
@@ -38,10 +41,12 @@ import {
   isTextRun,
   mergeAdjacentTextRuns,
   normalizeBlocks,
+  normalizeDialogText,
   paragraph,
   textRun,
   validateComplexTableBlock,
-  validateDocumentInlines,
+  validateDialogChapter,
+  validateDocumentContent,
 } from './model.js'
 
 function parseXmlRoot(source: string): Element {
@@ -190,6 +195,7 @@ export function documentFromXmlText(source: string): [DocumentModel, string[]] {
   if (root.tagName !== 'sklandDocument') {
     throw new EndfieldWikitextConversionError('Expected root element <sklandDocument>.')
   }
+  assertDialogPlacement(root)
 
   const publicMeta = parsePublicMeta(root)
   const commitMsgEl = optionalChild(root, 'commitMsg')
@@ -250,6 +256,27 @@ function chapterFromXml(chapter: Element): Chapter {
     throw new EndfieldWikitextConversionError('Each <chapter> element must have a name attribute.')
   }
   const size = chapter.getAttribute('size') || ''
+
+  if (chapter.getAttribute('dialog') === 'true') {
+    const location = `Dialog chapter '${title}'`
+    if (chapter.getAttribute('table') === 'true' || chapter.getAttribute('audio') === 'true') {
+      throw new EndfieldWikitextConversionError(`${location} cannot mix chapter modes.`)
+    }
+    const result: Chapter = {
+      title,
+      size,
+      chapterType: 'dialog',
+      content: [],
+      tabs: [],
+      audios: [],
+      tableRows: [],
+      dialog: dialogChildren(chapter, location).map((entry, index) =>
+        dialogEntryFromXml(entry, `${location}.dialogList[${index}]`)
+      ),
+    }
+    validateDialogChapter(result)
+    return result
+  }
 
   if (chapter.getAttribute('table') === 'true') {
     const table = requireChild(chapter, 'table')
@@ -351,6 +378,139 @@ function chapterFromXml(chapter: Element): Chapter {
     audios: [],
     tableRows: [],
   }
+}
+
+const DIALOG_TAGS: ReadonlySet<string> = new Set(['message', 'text', 'image', 'branches', 'branch', 'divider'])
+
+function assertDialogPlacement(root: Element): void {
+  const chapters = new Set<Element>()
+  for (const element of Array.from(root.getElementsByTagName('*'))) {
+    if (element.tagName === 'chapter' && element.getAttribute('dialog') === 'true') {
+      const group = element.parentElement
+      if (group?.tagName !== 'chapters' || group.parentElement !== root) {
+        throw new EndfieldWikitextConversionError('A dialog <chapter> must be directly inside a top-level <chapters> element.')
+      }
+      chapters.add(element)
+    }
+    if (!DIALOG_TAGS.has(element.tagName)) continue
+
+    let chapter = element.parentElement
+    while (chapter && chapter.tagName !== 'chapter') chapter = chapter.parentElement
+    if (!chapter || !chapters.has(chapter)) {
+      throw new EndfieldWikitextConversionError(`<${element.tagName}> must be inside a dialog chapter.`)
+    }
+  }
+}
+
+function dialogChildren(element: Element, location: string): Element[] {
+  if (directTextContent(element).trim()) {
+    throw new EndfieldWikitextConversionError(`${location} cannot contain text directly inside <${element.tagName}>.`)
+  }
+  return childElements(element)
+}
+
+function assertDialogAttributes(element: Element, allowed: string[], location: string): void {
+  for (const attr of Array.from(element.attributes)) {
+    if (!allowed.includes(attr.name)) {
+      throw new EndfieldWikitextConversionError(`${location} has unsupported attribute '${attr.name}' on <${element.tagName}>.`)
+    }
+  }
+}
+
+function dialogEntryFromXml(element: Element, location: string): DialogEntry {
+  switch (element.tagName) {
+    case 'message':
+      return dialogMessageFromXml(element, location)
+    case 'divider':
+      assertDialogAttributes(element, ['kind'], location)
+      if (childElements(element).length) {
+        throw new EndfieldWikitextConversionError(`${location} <divider> only supports plain text.`)
+      }
+      return { type: 'divider', kind: element.getAttribute('kind') || '', text: directTextContent(element) }
+    case 'branches':
+      assertDialogAttributes(element, [], location)
+      return {
+        type: 'branches',
+        branches: dialogChildren(element, location).map((branch, index) => {
+          const branchLocation = `${location}.branchList[${index}]`
+          if (branch.tagName !== 'branch' || !branch.hasAttribute('name')) {
+            throw new EndfieldWikitextConversionError(`${branchLocation} must be a <branch> with a name attribute.`)
+          }
+          assertDialogAttributes(branch, ['name'], branchLocation)
+          return {
+            title: branch.getAttribute('name') || '',
+            messages: dialogChildren(branch, branchLocation).map((message, messageIndex) =>
+              dialogMessageFromXml(message, `${branchLocation}.dialogList[${messageIndex}]`)
+            ),
+          }
+        }),
+      }
+    default:
+      throw new EndfieldWikitextConversionError(`${location} cannot contain <${element.tagName}>.`)
+  }
+}
+
+function dialogMessageFromXml(element: Element, location: string): DialogMessage {
+  const side = element.getAttribute('side')
+  if (element.tagName !== 'message' || (side !== 'me' && side !== 'other')) {
+    throw new EndfieldWikitextConversionError(`${location} must be a <message> with side 'me' or 'other'.`)
+  }
+  assertDialogAttributes(element, ['side', 'avatar', 'name'], location)
+  return {
+    type: 'message',
+    side,
+    avatarUrl: element.getAttribute('avatar') || '',
+    name: element.getAttribute('name') || '',
+    contents: dialogChildren(element, location).map((content, index) =>
+      dialogContentFromXml(content, `${location}.contents[${index}]`)
+    ),
+  }
+}
+
+function dialogContentFromXml(element: Element, location: string): DialogMessageContent {
+  if (element.tagName === 'text') {
+    return { type: 'text', blocks: dialogTextFromXml(element, location) }
+  }
+  if (element.tagName === 'image') {
+    assertDialogAttributes(element, ['src'], location)
+    if (elementHasContent(element)) {
+      throw new EndfieldWikitextConversionError(`${location} <image> cannot contain content.`)
+    }
+    return { type: 'image', src: element.getAttribute('src') || '' }
+  }
+  throw new EndfieldWikitextConversionError(`${location} must be <text> or <image>.`)
+}
+
+function dialogTextFromXml(element: Element, location: string): Block[] {
+  assertDialogAttributes(element, [], location)
+  const inlines: Inline[] = []
+  let layoutText = ''
+  let atLineStart = true
+
+  function flushText(atLineEnd: boolean): void {
+    // Trim layout at the edges of <text> and around explicit <br> elements.
+    const start = atLineStart ? layoutText.trimStart() : layoutText
+    const text = atLineEnd ? start.trimEnd() : start
+    if (text) inlines.push(textRun(text))
+    layoutText = ''
+  }
+
+  for (const node of Array.from(element.childNodes)) {
+    if (node.nodeType === TEXT_NODE || node.nodeType === CDATA_SECTION_NODE) {
+      layoutText += node.nodeValue ?? ''
+    } else if (node.nodeType === ELEMENT_NODE) {
+      const child = node as Element
+      const isBreak = child.tagName === 'br'
+      if (!isBreak && child.tagName !== 'emoji') {
+        throw new EndfieldWikitextConversionError(`${location} cannot contain <${child.tagName}> inside <text>.`)
+      }
+      flushText(isBreak)
+      inlines.push(...parseInlineElement(child))
+      atLineStart = isBreak
+    }
+  }
+  flushText(true)
+  return normalizeDialogText([paragraph(inlines)])
 }
 
 function audioItemsFromXml(audiosContainer: Element): AudioItem[] {
@@ -1056,7 +1216,7 @@ function appendInlineText(
 }
 
 export function documentToXmlText(document: DocumentModel): string {
-  validateDocumentInlines(document)
+  validateDocumentContent(document)
   const lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<sklandDocument>']
   lines.push(`    <itemId>${escapeXmlText(document.itemId)}</itemId>`)
   if (document.commitMsg !== undefined) {
@@ -1124,6 +1284,8 @@ function renderChapter(chapter: Chapter, indent: number) {
     attrs.table = 'true'
   } else if (chapter.chapterType === 'audio') {
     attrs.audio = 'true'
+  } else if (chapter.dialog) {
+    attrs.dialog = 'true'
   }
 
   const audioTabs = chapter.audioTabs ?? []
@@ -1135,7 +1297,9 @@ function renderChapter(chapter: Chapter, indent: number) {
 
   const lines = openContainer('chapter', attrs, indent)
 
-  if (chapter.chapterType === 'simple_table') {
+  if (chapter.dialog) {
+    for (const entry of chapter.dialog) lines.push(...renderDialogEntry(entry, indent + 4))
+  } else if (chapter.chapterType === 'simple_table') {
     lines.push(...renderSimpleTable(chapter.tableRows, indent + 4))
   } else if (chapter.chapterType === 'audio') {
     if (audioTabs.length) {
@@ -1154,6 +1318,43 @@ function renderChapter(chapter: Chapter, indent: number) {
   }
 
   lines.push(`${' '.repeat(indent)}</chapter>`)
+  return lines
+}
+
+function renderDialogEntry(entry: DialogEntry, indent: number): string[] {
+  const pad = ' '.repeat(indent)
+  switch (entry.type) {
+    case 'message':
+      return renderDialogMessage(entry, indent)
+    case 'divider':
+      return [`${pad}<divider kind=${quoteAttr(entry.kind)}>${escapeXmlText(entry.text)}</divider>`]
+    case 'branches': {
+      const lines = [`${pad}<branches>`]
+      for (const branch of entry.branches) {
+        lines.push(...openContainer('branch', { name: branch.title }, indent + 4))
+        for (const message of branch.messages) lines.push(...renderDialogMessage(message, indent + 8))
+        lines.push(`${pad}    </branch>`)
+      }
+      lines.push(`${pad}</branches>`)
+      return lines
+    }
+  }
+}
+
+function renderDialogMessage(message: DialogMessage, indent: number): string[] {
+  const attrs: Record<string, string> = { side: message.side, avatar: message.avatarUrl }
+  if (message.name) attrs.name = message.name
+  const pad = ' '.repeat(indent)
+  const lines = openContainer('message', attrs, indent)
+  for (const content of message.contents) {
+    if (content.type === 'text') {
+      const paragraphs = normalizeDialogText(content.blocks).flatMap((block) => renderBlock(block, 0))
+      lines.push(`${pad}    <text>${paragraphs.join('<br></br>')}</text>`)
+    } else {
+      lines.push(`${pad}    <image src=${quoteAttr(content.src)}/>`)
+    }
+  }
+  lines.push(`${pad}</message>`)
   return lines
 }
 

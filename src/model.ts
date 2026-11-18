@@ -158,6 +158,44 @@ export interface TableRow {
   cells: Array<[string, string]>
 }
 
+export interface DialogText {
+  type: 'text'
+  blocks: Block[]
+}
+
+export interface DialogImage {
+  type: 'image'
+  src: string
+}
+
+export type DialogMessageContent = DialogText | DialogImage
+
+export interface DialogMessage {
+  type: 'message'
+  side: 'me' | 'other'
+  name: string
+  avatarUrl: string
+  contents: DialogMessageContent[]
+}
+
+export interface DialogBranch {
+  title: string
+  messages: DialogMessage[]
+}
+
+export interface DialogBranches {
+  type: 'branches'
+  branches: DialogBranch[]
+}
+
+export interface DialogDivider {
+  type: 'divider'
+  kind: string
+  text: string
+}
+
+export type DialogEntry = DialogMessage | DialogBranches | DialogDivider
+
 export interface Chapter {
   title: string
   size: string
@@ -167,6 +205,7 @@ export interface Chapter {
   audios: AudioItem[]
   audioTabs?: AudioTab[]
   tableRows: TableRow[]
+  dialog?: DialogEntry[]
 }
 
 export interface ChapterGroup {
@@ -330,7 +369,7 @@ export function splitInlinesByNewline(inlines: Inline[]): Inline[][] {
   return lines
 }
 
-export function normalizeBlocks(blocks: Block[]): Block[] {
+export function normalizeBlocks(blocks: Block[], preserveBoundaryParagraphs = false): Block[] {
   const normalized: Block[] = []
 
   for (const block of blocks) {
@@ -358,7 +397,7 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
           line.pop()
         }
       }
-      if (lines.length > 1) {
+      if (!preserveBoundaryParagraphs && lines.length > 1) {
         while (lines.length && !lines[0]!.length) lines.shift()
         while (lines.length && !lines[lines.length - 1]!.length) lines.pop()
       }
@@ -431,15 +470,24 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
     normalized.push(block)
   }
 
-  while (normalized.length > 0 && isEmptyParagraph(normalized[0]!)) {
-    normalized.shift()
-  }
+  if (!preserveBoundaryParagraphs) {
+    while (normalized.length > 0 && isEmptyParagraph(normalized[0]!)) {
+      normalized.shift()
+    }
 
-  while (normalized.length > 0 && isEmptyParagraph(normalized[normalized.length - 1]!)) {
-    normalized.pop()
+    while (normalized.length > 0 && isEmptyParagraph(normalized[normalized.length - 1]!)) {
+      normalized.pop()
+    }
   }
 
   return copyIdentity(blocks, normalized)
+}
+
+export function normalizeDialogText(blocks: Block[]): Block[] {
+  const normalized = normalizeBlocks(blocks, true)
+  // An empty <text> represents a single empty line.
+  if (!normalized.length) normalized.push(paragraph())
+  return normalized
 }
 
 export function blocksToPlainText(blocks: Block[]): string {
@@ -526,8 +574,91 @@ export function* iterImageBlocks(blocks: Block[]): Generator<ImageBlock> {
   }
 }
 
-/** Validate new inline components before normalization or ID seeding can recurse. */
-export function validateDocumentInlines(document: DocumentModel): void {
+export function validateDialogText(blocks: Block[], location: string): void {
+  for (const block of blocks) {
+    if (!isParagraph(block) || block.kind !== 'body' || block.align !== 'left') {
+      throw new XmlWikiConversionError(`${location} only supports left-aligned body paragraphs.`)
+    }
+    for (const inline of block.inlines) {
+      if (inline.inlineType === 'emoji') {
+        if (typeof inline.id !== 'string' || !inline.id.trim()) {
+          throw new XmlWikiConversionError(`${location} emoji must include a nonempty id.`)
+        }
+      } else if (!isTextRun(inline) || inline.bold || inline.italic || inline.underline || inline.strike || inline.color !== null) {
+        throw new XmlWikiConversionError(`${location} only supports unstyled text and emoji.`)
+      }
+    }
+  }
+}
+
+function validateDialogMessage(message: DialogMessage, location: string): void {
+  if (message.type !== 'message' || (message.side !== 'me' && message.side !== 'other')) {
+    throw new XmlWikiConversionError(`${location} must be a message with side 'me' or 'other'.`)
+  }
+  if (typeof message.avatarUrl !== 'string' || !message.avatarUrl.trim()) {
+    throw new XmlWikiConversionError(`${location} must include a nonempty avatar.`)
+  }
+  for (const [index, content] of message.contents.entries()) {
+    const contentLocation = `${location}.contents[${index}]`
+    if (content.type === 'text') {
+      validateDialogText(content.blocks, contentLocation)
+    } else if (content.type === 'image') {
+      if (typeof content.src !== 'string' || !content.src.trim()) {
+        throw new XmlWikiConversionError(`${contentLocation} must include a nonempty image src.`)
+      }
+    } else {
+      throw new XmlWikiConversionError(`${contentLocation} must be text or an image.`)
+    }
+  }
+}
+
+export function validateDialogChapter(chapter: Chapter): void {
+  const location = `Dialog chapter '${chapter.title}'`
+  if (chapter.chapterType !== 'dialog' || chapter.content.length || chapter.tabs.length || chapter.audios.length ||
+    chapter.audioTabs?.length || chapter.tableRows.length) {
+    throw new XmlWikiConversionError(`${location} cannot mix chapter modes.`)
+  }
+  if (!Array.isArray(chapter.dialog) || !chapter.dialog.length) {
+    throw new XmlWikiConversionError(`${location} must contain at least one dialog entry.`)
+  }
+
+  for (const [index, entry] of chapter.dialog.entries()) {
+    const entryLocation = `${location}.dialogList[${index}]`
+    switch (entry.type) {
+      case 'message':
+        validateDialogMessage(entry, entryLocation)
+        break
+      case 'divider':
+        if (typeof entry.kind !== 'string' || !entry.kind.trim()) {
+          throw new XmlWikiConversionError(`${entryLocation} must include a nonempty divider kind.`)
+        }
+        break
+      case 'branches':
+        if (!entry.branches.length) {
+          throw new XmlWikiConversionError(`${entryLocation} must contain at least one branch.`)
+        }
+        for (const [branchIndex, branch] of entry.branches.entries()) {
+          const branchLocation = `${entryLocation}.branchList[${branchIndex}]`
+          for (const [messageIndex, message] of branch.messages.entries()) {
+            validateDialogMessage(message, `${branchLocation}.dialogList[${messageIndex}]`)
+          }
+          const first = branch.messages[0]
+          if (first?.side !== 'me' || branch.messages.at(-1)?.side !== 'other') {
+            throw new XmlWikiConversionError(`${branchLocation} must start with 'me' and end with 'other'.`)
+          }
+          if (first.contents.some((content) => content.type === 'image')) {
+            throw new XmlWikiConversionError(`${branchLocation} first message cannot contain an image.`)
+          }
+        }
+        break
+      default:
+        throw new XmlWikiConversionError(`${entryLocation} must be a message, a divider or a branch group.`)
+    }
+  }
+}
+
+/** Validate document content before normalization or ID seeding can recurse. */
+export function validateDocumentContent(document: DocumentModel): void {
   const active = new Set<object>()
   function visitBlocks(blocks: Block[], inAnnotation: boolean, allowTables: boolean): void {
     for (const block of blocks) {
@@ -564,6 +695,7 @@ export function validateDocumentInlines(document: DocumentModel): void {
   visitBlocks(document.description, false, true)
   for (const group of document.chapterGroups) {
     for (const chapter of group.chapters) {
+      if (chapter.chapterType === 'dialog' || chapter.dialog !== undefined) validateDialogChapter(chapter)
       visitBlocks(chapter.content, false, true)
       for (const tab of chapter.tabs) {
         visitBlocks(tab.content, false, true)

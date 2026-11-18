@@ -17,6 +17,9 @@ import type {
   ChapterGroup,
   ComplexTableBlock,
   ComplexTableCell,
+  DialogEntry,
+  DialogMessage,
+  DialogMessageContent,
   DocumentModel,
   ImageIntro,
   Inline,
@@ -36,11 +39,14 @@ import {
   isRecord,
   isTextRun,
   normalizeBlocks,
+  normalizeDialogText,
   splitInlinesByNewline,
   paragraph,
   textRun,
   validateComplexTableBlock,
-  validateDocumentInlines,
+  validateDialogChapter,
+  validateDialogText,
+  validateDocumentContent,
 } from './model.js'
 
 export interface RenderJsonOptions {
@@ -294,7 +300,7 @@ function buildWikiJsonObject(
   options: RenderWikiJsonOptions,
   target: JsonRenderTarget,
 ) {
-  validateDocumentInlines(document)
+  validateDocumentContent(document)
   let factory = new IdFactory(new Set(), false, JSON.stringify(document))
   if (options.referenceJson !== undefined) {
     const parsed = ensureMapping(parseJsonInput(options.referenceJson), 'referenceJson')
@@ -425,6 +431,29 @@ function readChapterFromJson(
   const size = requireString(widget, `widget[${widgetId}].size`, 'size')
   const common = ensureMapping(widgetCommonMap[widgetId], `widgetCommonMap[${widgetId}]`)
   const chapterType = requireString(common, `widgetCommonMap[${widgetId}].type`, 'type')
+
+  if (chapterType === 'dialog') {
+    const location = `Dialog chapter '${title}'`
+    assertEmptyDialogLists(common, location, ['tableList', 'tabList'])
+    if (common.tabDataMap !== undefined &&
+      Object.keys(ensureMapping(common.tabDataMap, `${location}.tabDataMap`)).length) {
+      throw new EndfieldWikitextConversionError(`${location} cannot mix chapter modes with tabDataMap.`)
+    }
+    const chapter: Chapter = {
+      title,
+      size,
+      chapterType,
+      content: [],
+      tabs: [],
+      audios: [],
+      tableRows: [],
+      dialog: requireList(common, `${location}.dialogList`, 'dialogList').map((entry, index) =>
+        dialogEntryFromJson(entry, `${location}.dialogList[${index}]`, documentMap)
+      ),
+    }
+    validateDialogChapter(chapter)
+    return chapter
+  }
 
   if (chapterType === 'table') {
     const tableEntries = requireList(common, `widgetCommonMap[${widgetId}].tableList`, 'tableList')
@@ -581,6 +610,102 @@ function readChapterFromJson(
   }
 }
 
+function assertEmptyDialogLists(payload: Record<string, unknown>, location: string, keys: string[]): void {
+  for (const key of keys) {
+    if (payload[key] !== undefined && requireList(payload, `${location}.${key}`, key).length) {
+      throw new EndfieldWikitextConversionError(`${location} cannot contain ${key} entries.`)
+    }
+  }
+}
+
+function dialogEntryFromJson(
+  value: unknown,
+  location: string,
+  documentMap: Record<string, unknown>,
+): DialogEntry {
+  const entry = ensureMapping(value, location)
+  if (entry.type === 'dialog-me' || entry.type === 'dialog-other') {
+    return dialogMessageFromJson(entry, location, documentMap)
+  }
+
+  const options = requireMapping(entry, location, 'options')
+  const ids = typeof entry.id === 'string' ? { id: entry.id } : {}
+  if (entry.type === 'dividing-line') {
+    assertEmptyDialogLists(options, `${location}.options`, ['contents', 'branchList', 'dialogList'])
+    return withIdentity({
+      type: 'divider',
+      kind: requireString(options, `${location}.options.type`, 'type'),
+      text: requireString(options, `${location}.options.text`, 'text', ''),
+    }, ids)
+  }
+  if (entry.type === 'branch-group') {
+    assertEmptyDialogLists(options, `${location}.options`, ['contents', 'dialogList'])
+    const branches = requireList(options, `${location}.options.branchList`, 'branchList').map((value, index) => {
+      const branchLocation = `${location}.branchList[${index}]`
+      const branch = ensureMapping(value, branchLocation)
+      if (branch.type !== 'branch-group-item') {
+        throw new EndfieldWikitextConversionError(`${branchLocation} must be a branch-group-item.`)
+      }
+      const data = requireMapping(branch, branchLocation, 'options')
+      assertEmptyDialogLists(data, `${branchLocation}.options`, ['contents', 'branchList'])
+      return withIdentity({
+        title: requireString(data, `${branchLocation}.options.title`, 'title'),
+        messages: requireList(data, `${branchLocation}.options.dialogList`, 'dialogList').map((message, messageIndex) =>
+          dialogMessageFromJson(message, `${branchLocation}.dialogList[${messageIndex}]`, documentMap)
+        ),
+      }, typeof branch.id === 'string' ? { id: branch.id } : {})
+    })
+    return withIdentity({ type: 'branches', branches }, ids)
+  }
+  throw new EndfieldWikitextConversionError(`Unsupported dialog entry type '${String(entry.type)}' at ${location}.`)
+}
+
+function dialogMessageFromJson(
+  value: unknown,
+  location: string,
+  documentMap: Record<string, unknown>,
+): DialogMessage {
+  const entry = ensureMapping(value, location)
+  if (entry.type !== 'dialog-me' && entry.type !== 'dialog-other') {
+    throw new EndfieldWikitextConversionError(`${location} must contain a dialog-me or dialog-other message.`)
+  }
+  const options = requireMapping(entry, location, 'options')
+  const optionsLocation = `${location}.options`
+  assertEmptyDialogLists(options, optionsLocation, ['branchList', 'dialogList'])
+  return withIdentity({
+    type: 'message',
+    side: entry.type === 'dialog-me' ? 'me' : 'other',
+    name: requireString(options, `${optionsLocation}.name`, 'name', ''),
+    avatarUrl: requireString(options, `${optionsLocation}.avatarUrl`, 'avatarUrl', ''),
+    contents: requireList(options, `${optionsLocation}.contents`, 'contents').map((content, index) =>
+      dialogContentFromJson(content, `${location}.contents[${index}]`, documentMap)
+    ),
+  }, typeof entry.id === 'string' ? { id: entry.id } : {})
+}
+
+function dialogContentFromJson(
+  value: unknown,
+  location: string,
+  documentMap: Record<string, unknown>,
+): DialogMessageContent {
+  const entry = ensureMapping(value, location)
+  const ids = typeof entry.id === 'string' ? { id: entry.id } : {}
+  if (entry.type === 'image') {
+    return withIdentity({ type: 'image', src: requireString(entry, `${location}.imageUrl`, 'imageUrl') }, ids)
+  }
+  if (entry.type === 'text') {
+    const documentId = requireString(entry, `${location}.text`, 'text')
+    if (!documentId.trim() || !Object.hasOwn(documentMap, documentId)) {
+      throw new EndfieldWikitextConversionError(`${location} refers to missing documentMap[${documentId}].`)
+    }
+    const document = ensureMapping(documentMap[documentId], `${location} documentMap[${documentId}]`)
+    const blocks = blocksFromDocument(document, (blocks) => validateDialogText(blocks, location), normalizeDialogText)
+    withIdentity(blocks, { ...identity(blocks), documentId })
+    return withIdentity({ type: 'text', blocks }, ids)
+  }
+  throw new EndfieldWikitextConversionError(`Unsupported dialog content type '${String(entry.type)}' at ${location}.`)
+}
+
 function chapterContentFromRef(
   chapterTitle: string,
   refName: string,
@@ -601,17 +726,21 @@ function chapterContentFromRef(
   })
 }
 
-function blocksFromDocument(document: Record<string, unknown>) {
+function blocksFromDocument(
+  document: Record<string, unknown>,
+  validate?: (blocks: Block[]) => void,
+  normalize = normalizeBlocks,
+) {
   const blockIds = requireList(document, 'document.blockIds', 'blockIds')
   const blockMap = requireMapping(document, 'document.blockMap', 'blockMap')
-  return withIdentity(normalizeBlocks(
-    blockIds.map((blockId) => {
-      if (typeof blockId !== 'string') {
-        throw new EndfieldWikitextConversionError('Expected block ids to be strings.')
-      }
-      return blockFromJson(blockId, blockMap, { allowTables: true })
-    })
-  ), { id: typeof document.id === 'string' ? document.id : 'document-id' })
+  const blocks = blockIds.map((blockId) => {
+    if (typeof blockId !== 'string') {
+      throw new EndfieldWikitextConversionError('Expected block ids to be strings.')
+    }
+    return blockFromJson(blockId, blockMap, { allowTables: true })
+  })
+  validate?.(blocks)
+  return withIdentity(normalize(blocks), { id: typeof document.id === 'string' ? document.id : 'document-id' })
 }
 
 interface JsonBlockContext {
@@ -936,6 +1065,16 @@ function chapterToJson(
   factory: IdFactory,
   target: JsonRenderTarget,
 ): Record<string, unknown> {
+  if (chapter.dialog) {
+    return {
+      type: 'dialog',
+      tableList: [],
+      tabList: [],
+      tabDataMap: {},
+      dialogList: dialogToJson(chapter.dialog, chapter, documentMap, factory),
+    }
+  }
+
   if (chapter.chapterType === 'simple_table') {
     const tableList: Array<Record<string, string>> = []
     for (const row of chapter.tableRows) {
@@ -1071,6 +1210,69 @@ function chapterToJson(
   }
 }
 
+function dialogToJson(
+  entries: DialogEntry[],
+  chapter: Chapter,
+  documentMap: Record<string, unknown>,
+  factory: IdFactory,
+) {
+  const dialogId = (entry: object) => factory.reuse(entry, 'id', () => factory.widgetId(), chapter)
+  const messageOptions = (message: DialogMessage) => ({
+    name: message.name,
+    avatarUrl: message.avatarUrl,
+    contents: message.contents.map((content) => ({
+      id: dialogId(content),
+      type: content.type,
+      text: content.type === 'text' ? storeDocument(content.blocks, documentMap, factory, normalizeDialogText) : '',
+      imageUrl: content.type === 'image' ? content.src : '',
+    })),
+  })
+
+  return entries.map((entry) => {
+    const id = dialogId(entry)
+    const defaults = {
+      name: '',
+      avatarUrl: '',
+      contents: [],
+      branchList: [],
+      title: '',
+      dialogList: [],
+      type: '',
+      text: '',
+    }
+    switch (entry.type) {
+      case 'message':
+        return { id, type: `dialog-${entry.side}`, options: { ...defaults, ...messageOptions(entry) } }
+      case 'divider':
+        return {
+          id,
+          type: 'dividing-line',
+          options: { ...defaults, type: entry.kind, text: entry.text },
+        }
+      case 'branches':
+        return {
+          id,
+          type: 'branch-group',
+          options: {
+            ...defaults,
+            branchList: entry.branches.map((branch) => ({
+              id: dialogId(branch),
+              type: 'branch-group-item',
+              options: {
+                title: branch.title,
+                dialogList: branch.messages.map((message) => ({
+                  id: dialogId(message),
+                  type: `dialog-${message.side}`,
+                  options: messageOptions(message),
+                })),
+              },
+            })),
+          },
+        }
+    }
+  })
+}
+
 function audioItemsToJson(
   audios: AudioItem[],
   factory: IdFactory,
@@ -1087,20 +1289,21 @@ function audioItemsToJson(
 function storeDocument(
   blocks: Block[],
   documentMap: Record<string, unknown>,
-  factory: IdFactory
+  factory: IdFactory,
+  normalize = normalizeBlocks,
 ): string {
   const documentId = factory.reuse(blocks, 'documentId', () => factory.widgetId(), 'documents')
-  documentMap[documentId] = buildDocumentPayload(blocks, factory)
+  documentMap[documentId] = buildDocumentPayload(blocks, factory, normalize)
   return documentId
 }
 
-function buildDocumentPayload(blocks: Block[], factory: IdFactory): Record<string, unknown> {
+function buildDocumentPayload(blocks: Block[], factory: IdFactory, normalize = normalizeBlocks): Record<string, unknown> {
   const blockIds: string[] = []
   const blockMap: Record<string, unknown> = Object.create(null)
 
   factory.beginDocument(blocks)
   const rootId = factory.reuse(blocks, 'id', () => 'document-id')
-  for (const block of normalizeBlocks(blocks)) {
+  for (const block of normalize(blocks)) {
     const blockId = appendBlock(block, blockMap, rootId, factory)
     blockIds.push(blockId)
   }
