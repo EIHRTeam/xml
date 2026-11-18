@@ -41,6 +41,7 @@ import {
   isTextRun,
   mergeAdjacentTextRuns,
   normalizeBlocks,
+  normalizeDialogText,
   paragraph,
   textRun,
   validateComplexTableBlock,
@@ -468,13 +469,7 @@ function dialogMessageFromXml(element: Element, location: string): DialogMessage
 
 function dialogContentFromXml(element: Element, location: string): DialogMessageContent {
   if (element.tagName === 'text') {
-    assertDialogAttributes(element, [], location)
-    for (const child of childElements(element)) {
-      if (child.tagName !== 'emoji' && child.tagName !== 'br') {
-        throw new EndfieldWikitextConversionError(`${location} cannot contain <${child.tagName}> inside <text>.`)
-      }
-    }
-    return { type: 'text', blocks: parseMixedBlocks(element, { allowTables: false }) }
+    return { type: 'text', blocks: dialogTextFromXml(element, location) }
   }
   if (element.tagName === 'image') {
     assertDialogAttributes(element, ['src'], location)
@@ -484,6 +479,38 @@ function dialogContentFromXml(element: Element, location: string): DialogMessage
     return { type: 'image', src: element.getAttribute('src') || '' }
   }
   throw new EndfieldWikitextConversionError(`${location} must be <text> or <image>.`)
+}
+
+function dialogTextFromXml(element: Element, location: string): Block[] {
+  assertDialogAttributes(element, [], location)
+  const inlines: Inline[] = []
+  let layoutText = ''
+  let atLineStart = true
+
+  function flushText(atLineEnd: boolean): void {
+    // Trim layout at the edges of <text> and around explicit <br> elements.
+    const start = atLineStart ? layoutText.trimStart() : layoutText
+    const text = atLineEnd ? start.trimEnd() : start
+    if (text) inlines.push(textRun(text))
+    layoutText = ''
+  }
+
+  for (const node of Array.from(element.childNodes)) {
+    if (node.nodeType === TEXT_NODE || node.nodeType === CDATA_SECTION_NODE) {
+      layoutText += node.nodeValue ?? ''
+    } else if (node.nodeType === ELEMENT_NODE) {
+      const child = node as Element
+      const isBreak = child.tagName === 'br'
+      if (!isBreak && child.tagName !== 'emoji') {
+        throw new EndfieldWikitextConversionError(`${location} cannot contain <${child.tagName}> inside <text>.`)
+      }
+      flushText(isBreak)
+      inlines.push(...parseInlineElement(child))
+      atLineStart = isBreak
+    }
+  }
+  flushText(true)
+  return normalizeDialogText([paragraph(inlines)])
 }
 
 function audioItemsFromXml(audiosContainer: Element): AudioItem[] {
@@ -1321,7 +1348,8 @@ function renderDialogMessage(message: DialogMessage, indent: number): string[] {
   const lines = openContainer('message', attrs, indent)
   for (const content of message.contents) {
     if (content.type === 'text') {
-      lines.push(...renderBlockContainer('text', {}, content.blocks, indent + 4))
+      const paragraphs = normalizeDialogText(content.blocks).flatMap((block) => renderBlock(block, 0))
+      lines.push(`${pad}    <text>${paragraphs.join('<br></br>')}</text>`)
     } else {
       lines.push(`${pad}    <image src=${quoteAttr(content.src)}/>`)
     }

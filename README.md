@@ -175,8 +175,8 @@ JSON 中缺省的 `gameIcon.text` 按空串处理，显式 `null`、其他类型
 
 ### 对话章节
 
-在 `<chapters>` 内用 `<chapter dialog="true">` 表示一个对话组件。顶层按序放置
-`<message>`、`<branches>` 和 `<divider>`。每个 `<message>` 必须提供 `side="me"` 或
+在 `<chapters>` 内用 `<chapter dialog="true">` 表示一个对话组件。章节至少包含一个条目，
+可按序放置 `<message>`、`<branches>` 和 `<divider>`。每个 `<message>` 必须提供 `side="me"` 或
 `side="other"` 以及非空的 `avatar`，分支内也一样。省略 `name` 时昵称为空。
 
 ```xml
@@ -204,7 +204,8 @@ JSON 中缺省的 `gameIcon.text` 按空串处理，显式 `null`、其他类型
 ```
 
 - `<message>` 内的 `<text>` 和 `<image src="…"/>` 按原顺序转换。每个 `<text>` 对应单独的
-  `documentMap` 文档，支持纯文本、`<emoji>` 和 `<br>`，换行生成普通段落。图片的 `src` 必须非空。
+  `documentMap` 文档，支持纯文本、`<emoji>` 和 `<br>`。显式换行会生成段落，包括首尾空段落。
+  空 `<text>` 表示一个空段落。图片的 `src` 必须非空。
 - `<branches>` 至少包含一个带 `name` 属性的 `<branch>`。分支内只允许发言，首条必须为我方且不能带图，
   至少要有一条对方回复，并以对方发言结束。
 - `<divider>` 的 `kind` 是非空的样式字符串，对应 JSON 的 `options.type`。可选的纯文本内容对应 `options.text`。
@@ -280,6 +281,10 @@ XML renders these paragraphs with layout newlines, preserving interior blank
 lines without emitting inline `br` elements. When using `referenceJson`, the
 first split line can reuse the original block ID; other lines reuse matching
 reference IDs or receive deterministic new IDs.
+
+Dialog text preserves leading and trailing empty paragraphs. XML renders
+paragraph boundaries in dialog text as `<br></br>` and ignores layout
+whitespace at the edges of the text and around those elements.
 
 Audio profiles and image descriptions retain string newline semantics and use
 closed `<br></br>` elements in XML. Image-intro descriptions continue to store

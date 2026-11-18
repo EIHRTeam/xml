@@ -369,7 +369,7 @@ export function splitInlinesByNewline(inlines: Inline[]): Inline[][] {
   return lines
 }
 
-export function normalizeBlocks(blocks: Block[]): Block[] {
+export function normalizeBlocks(blocks: Block[], preserveBoundaryParagraphs = false): Block[] {
   const normalized: Block[] = []
 
   for (const block of blocks) {
@@ -397,7 +397,7 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
           line.pop()
         }
       }
-      if (lines.length > 1) {
+      if (!preserveBoundaryParagraphs && lines.length > 1) {
         while (lines.length && !lines[0]!.length) lines.shift()
         while (lines.length && !lines[lines.length - 1]!.length) lines.pop()
       }
@@ -470,15 +470,24 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
     normalized.push(block)
   }
 
-  while (normalized.length > 0 && isEmptyParagraph(normalized[0]!)) {
-    normalized.shift()
-  }
+  if (!preserveBoundaryParagraphs) {
+    while (normalized.length > 0 && isEmptyParagraph(normalized[0]!)) {
+      normalized.shift()
+    }
 
-  while (normalized.length > 0 && isEmptyParagraph(normalized[normalized.length - 1]!)) {
-    normalized.pop()
+    while (normalized.length > 0 && isEmptyParagraph(normalized[normalized.length - 1]!)) {
+      normalized.pop()
+    }
   }
 
   return copyIdentity(blocks, normalized)
+}
+
+export function normalizeDialogText(blocks: Block[]): Block[] {
+  const normalized = normalizeBlocks(blocks, true)
+  // An empty <text> represents a single empty line.
+  if (!normalized.length) normalized.push(paragraph())
+  return normalized
 }
 
 export function blocksToPlainText(blocks: Block[]): string {
@@ -605,10 +614,12 @@ function validateDialogMessage(message: DialogMessage, location: string): void {
 
 export function validateDialogChapter(chapter: Chapter): void {
   const location = `Dialog chapter '${chapter.title}'`
-  if (chapter.chapterType !== 'dialog' || !Array.isArray(chapter.dialog) ||
-    chapter.content.length || chapter.tabs.length || chapter.audios.length ||
+  if (chapter.chapterType !== 'dialog' || chapter.content.length || chapter.tabs.length || chapter.audios.length ||
     chapter.audioTabs?.length || chapter.tableRows.length) {
-    throw new XmlWikiConversionError(`${location} must have dialog entries and cannot mix chapter modes.`)
+    throw new XmlWikiConversionError(`${location} cannot mix chapter modes.`)
+  }
+  if (!Array.isArray(chapter.dialog) || !chapter.dialog.length) {
+    throw new XmlWikiConversionError(`${location} must contain at least one dialog entry.`)
   }
 
   for (const [index, entry] of chapter.dialog.entries()) {

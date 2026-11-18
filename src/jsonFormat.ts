@@ -39,6 +39,7 @@ import {
   isRecord,
   isTextRun,
   normalizeBlocks,
+  normalizeDialogText,
   splitInlinesByNewline,
   paragraph,
   textRun,
@@ -698,7 +699,7 @@ function dialogContentFromJson(
       throw new EndfieldWikitextConversionError(`${location} refers to missing documentMap[${documentId}].`)
     }
     const document = ensureMapping(documentMap[documentId], `${location} documentMap[${documentId}]`)
-    const blocks = blocksFromDocument(document, (blocks) => validateDialogText(blocks, location))
+    const blocks = blocksFromDocument(document, (blocks) => validateDialogText(blocks, location), normalizeDialogText)
     withIdentity(blocks, { ...identity(blocks), documentId })
     return withIdentity({ type: 'text', blocks }, ids)
   }
@@ -725,7 +726,11 @@ function chapterContentFromRef(
   })
 }
 
-function blocksFromDocument(document: Record<string, unknown>, validate?: (blocks: Block[]) => void) {
+function blocksFromDocument(
+  document: Record<string, unknown>,
+  validate?: (blocks: Block[]) => void,
+  normalize = normalizeBlocks,
+) {
   const blockIds = requireList(document, 'document.blockIds', 'blockIds')
   const blockMap = requireMapping(document, 'document.blockMap', 'blockMap')
   const blocks = blockIds.map((blockId) => {
@@ -735,7 +740,7 @@ function blocksFromDocument(document: Record<string, unknown>, validate?: (block
     return blockFromJson(blockId, blockMap, { allowTables: true })
   })
   validate?.(blocks)
-  return withIdentity(normalizeBlocks(blocks), { id: typeof document.id === 'string' ? document.id : 'document-id' })
+  return withIdentity(normalize(blocks), { id: typeof document.id === 'string' ? document.id : 'document-id' })
 }
 
 interface JsonBlockContext {
@@ -1218,7 +1223,7 @@ function dialogToJson(
     contents: message.contents.map((content) => ({
       id: dialogId(content),
       type: content.type,
-      text: content.type === 'text' ? storeDocument(content.blocks, documentMap, factory) : '',
+      text: content.type === 'text' ? storeDocument(content.blocks, documentMap, factory, normalizeDialogText) : '',
       imageUrl: content.type === 'image' ? content.src : '',
     })),
   })
@@ -1284,20 +1289,21 @@ function audioItemsToJson(
 function storeDocument(
   blocks: Block[],
   documentMap: Record<string, unknown>,
-  factory: IdFactory
+  factory: IdFactory,
+  normalize = normalizeBlocks,
 ): string {
   const documentId = factory.reuse(blocks, 'documentId', () => factory.widgetId(), 'documents')
-  documentMap[documentId] = buildDocumentPayload(blocks, factory)
+  documentMap[documentId] = buildDocumentPayload(blocks, factory, normalize)
   return documentId
 }
 
-function buildDocumentPayload(blocks: Block[], factory: IdFactory): Record<string, unknown> {
+function buildDocumentPayload(blocks: Block[], factory: IdFactory, normalize = normalizeBlocks): Record<string, unknown> {
   const blockIds: string[] = []
   const blockMap: Record<string, unknown> = Object.create(null)
 
   factory.beginDocument(blocks)
   const rootId = factory.reuse(blocks, 'id', () => 'document-id')
-  for (const block of normalizeBlocks(blocks)) {
+  for (const block of normalize(blocks)) {
     const blockId = appendBlock(block, blockMap, rootId, factory)
     blockIds.push(blockId)
   }
