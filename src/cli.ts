@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util'
 import { readFileSync, writeFileSync } from 'node:fs'
+import { text } from 'node:stream/consumers'
 import {
   submitJsonToWikiJson,
   submitJsonToXml,
@@ -89,7 +90,7 @@ if (!values.input && process.stdin.isTTY) {
 
 const source = values.input
   ? readFileSync(values.input, 'utf8')
-  : readFileSync(0, 'utf8')
+  : await text(process.stdin)
 
 let result: { text: string; warnings: string[] }
 

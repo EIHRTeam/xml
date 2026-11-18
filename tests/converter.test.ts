@@ -889,7 +889,6 @@ describe('external video (<video>) blocks', () => {
 
 describe('inline components', () => {
   const fixture = JSON.parse(readFileSync(new URL('./fixtures/2897-emoji-and-note.json', import.meta.url), 'utf8'))
-  const chatFixture = JSON.parse(readFileSync(new URL('./fixtures/2897-with-chat.json', import.meta.url), 'utf8'))
   const emoji: Inline = { inlineType: 'emoji', id: 'custom<&"icon' }
   const note = (content: Block[] = [], title: Inline[] = []): AnnotationInline => ({
     inlineType: 'annotation', title, content,
@@ -968,16 +967,6 @@ describe('inline components', () => {
         assertAnnotationReferences(payload.data?.item ?? payload)
         expect(renderWikiJson(parseXml(outputXml), options)).toBe(wiki)
       }
-    })
-
-    test('extracts supported components from the chat fixture and rejects the full dialog widget', () => {
-      expect(() => submitJsonToXml(chatFixture)).toThrow(/Unsupported widget type 'dialog'/)
-      const supported = structuredClone(chatFixture)
-      const descriptors = supported.item.document.chapterGroup[0].widgets
-      const dialog = descriptors.find((entry: any) => supported.item.document.widgetCommonMap[entry.id].type === 'dialog')
-      supported.item.document.chapterGroup[0].widgets = descriptors.filter((entry: any) => entry !== dialog)
-      delete supported.item.document.widgetCommonMap[dialog.id]
-      expect(parseXml(submitJsonToXml(supported).text)).toEqual(parseSubmitJson(supported)[0])
     })
 
     test('preserves atomic components, empty annotations, multiple notes and outer paragraph boundaries', () => {

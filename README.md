@@ -171,7 +171,45 @@ JSON 中缺省的 `gameIcon.text` 按空串处理，显式 `null`、其他类型
 指向所属段落。`referenceJson` 支持复用详情块及其内部组件的 ID，图标 ID 始终保留。
 读取时以 `childIds` 为准，兼容原始样本中详情块 `parentId` 与所属段落不匹配的历史值。
 公开 `Inline` 类型新增 `EmojiInline` 和 `AnnotationInline`。纯文本提取使用注释标题，表情不产生文字。
-无效或循环块引用、非法标签内容及嵌套注释均抛出转换错误。`dialog` 对话组件目前仍会报不支持错误。
+无效或循环块引用、非法标签内容及嵌套注释均抛出转换错误。
+
+### 对话章节
+
+在 `<chapters>` 内用 `<chapter dialog="true">` 表示一个对话组件。顶层按序放置
+`<message>`、`<branches>` 和 `<divider>`。每个 `<message>` 必须提供 `side="me"` 或
+`side="other"` 以及非空的 `avatar`，分支内也一样。省略 `name` 时昵称为空。
+
+```xml
+<chapter size="large" name="对话组件-1" dialog="true">
+    <message side="other" name="对方名字1" avatar="https://example.com/other.jpg">
+        <text>收到图了吗？</text>
+        <image src="https://example.com/photo.png"/>
+        <text>看右下角。<emoji id="emoji_sns_emoiji_001"/></text>
+    </message>
+    <branches>
+        <branch name="分支1">
+            <message side="me" name="我方名字1" avatar="https://example.com/me.png">
+                <text>看到了。</text>
+            </message>
+            <message side="other" avatar="https://example.com/other.jpg">
+                <text>那就出发吧。</text>
+            </message>
+        </branch>
+    </branches>
+    <divider kind="5"/>
+    <message side="other" avatar="https://example.com/other.jpg">
+        <text>我在入口等你。</text>
+    </message>
+</chapter>
+```
+
+- `<message>` 内的 `<text>` 和 `<image src="…"/>` 按原顺序转换。每个 `<text>` 对应单独的
+  `documentMap` 文档，支持纯文本、`<emoji>` 和 `<br>`，换行生成普通段落。图片的 `src` 必须非空。
+- `<branches>` 至少包含一个带 `name` 属性的 `<branch>`。分支内只允许发言，首条必须为我方且不能带图，
+  至少要有一条对方回复，并以对方发言结束。
+- `<divider>` 的 `kind` 是非空的样式字符串，对应 JSON 的 `options.type`。可选的纯文本内容对应 `options.text`。
+- 对话标签限用于对话章节。JSON 和 XML 双向校验章节结构、头像、分支规则和文字内容。
+  使用 `referenceJson` 时，可复用发言、分支、分隔线、消息内容、文档及文档内文字块的 ID。
 
 ## 运行时
 

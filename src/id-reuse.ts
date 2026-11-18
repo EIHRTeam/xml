@@ -1,6 +1,6 @@
 import { IdFactory } from './ids.js'
 import { identity, withIdentity, type Identity } from './identity.js'
-import { normalizeBlocks, type Block, type DocumentModel, type ImageIntro } from './model.js'
+import { normalizeBlocks, type Block, type DialogEntry, type DialogMessage, type DocumentModel, type ImageIntro } from './model.js'
 
 interface Node {
   object: object
@@ -131,6 +131,37 @@ function tree(
         audio.resourceUrl && `url:${audio.resourceUrl}`,
       ]),
     )
+  function dialogMessageNode(message: DialogMessage): Node {
+    return node(
+      message,
+      `dialogMessage:${message.side}`,
+      [message.name, message.avatarUrl],
+      {
+        contents: message.contents.map((content) => content.type === 'text'
+          ? node(content, 'dialogText', null, { document: [documentNode(content.blocks)] })
+          : node(content, 'dialogImage', content.src, {}, [`url:${content.src}`])),
+      },
+      [message.name && `name:${message.side}:${message.name}`, `avatar:${message.side}:${message.avatarUrl}`],
+    )
+  }
+
+  function dialogNode(entry: DialogEntry): Node {
+    switch (entry.type) {
+      case 'message':
+        return dialogMessageNode(entry)
+      case 'divider':
+        return node(entry, 'dialogDivider', [entry.kind, entry.text])
+      case 'branches':
+        return node(entry, 'dialogBranches', null, {
+          branches: entry.branches.map((branch) =>
+            node(branch, 'dialogBranch', branch.title, { messages: branch.messages.map(dialogMessageNode) }, [
+              branch.title && `title:${branch.title}`,
+            ]),
+          ),
+        })
+    }
+  }
+
   const root = node(
     document,
     'root',
@@ -149,6 +180,7 @@ function tree(
                 `chapter:${chapter.chapterType}`,
                 [chapter.title, chapter.size, chapter.tableRows],
                 {
+                  ...(chapter.dialog ? { dialog: chapter.dialog.map(dialogNode) } : {}),
                   content: [documentNode(chapter.content)],
                   audios: audioNodes(chapter.audios),
                   tabs: (chapter.audioTabs ?? chapter.tabs).map((tab) => {
